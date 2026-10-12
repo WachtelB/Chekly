@@ -10,6 +10,10 @@ import com.nordix.chekly.LoggedActivity
 import com.nordix.chekly.ui.theme.CheklyTheme
 
 private const val TAG = "ChallengeActivity"
+private const val KEY_CATEGORY = "challenge_category"
+private const val KEY_LIMIT = "challenge_limit"
+private const val KEY_DAYS = "challenge_days"
+private const val KEY_ACCEPTED = "challenge_accepted"
 class ChallengeActivity : LoggedActivity() {
 
     private val challenge = mutableStateOf<Challenge?>(null)
@@ -19,7 +23,11 @@ class ChallengeActivity : LoggedActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        showLink(intent)
+        if (savedInstanceState != null && savedInstanceState.containsKey(KEY_CATEGORY)) {
+            restoreState(savedInstanceState)
+        } else {
+            showLink(intent)
+        }
 
         setContent {
             CheklyTheme {
@@ -43,5 +51,31 @@ class ChallengeActivity : LoggedActivity() {
             }
         }
         accepted.value = false
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        Log.d(TAG, "onNewIntent: ${intent.data}")
+        setIntent(intent)
+        showLink(intent)
+    }
+
+    private fun restoreState(saved: Bundle) {
+        challenge.value = Challenge(
+            category = saved.getString(KEY_CATEGORY) ?: "",
+            limitRub = saved.getLong(KEY_LIMIT),
+            days = saved.getInt(KEY_DAYS),
+        )
+        accepted.value = saved.getBoolean(KEY_ACCEPTED)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        challenge.value?.let { current ->
+            outState.putString(KEY_CATEGORY, current.category)
+            outState.putLong(KEY_LIMIT, current.limitRub)
+            outState.putInt(KEY_DAYS, current.days)
+            outState.putBoolean(KEY_ACCEPTED, accepted.value)
+        }
     }
 }
