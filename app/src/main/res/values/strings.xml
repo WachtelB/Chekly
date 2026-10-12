@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Chekly</string>
+    <string name="challenge_title">Вам бросили челлендж!</string>
+    <string name="challenge_description">Потратьте на «%1$s» не больше %2$d ₽ за %3$d дн.</string>
+    <string name="challenge_accept">Принять</string>
+    <string name="challenge_accepted">Челлендж принят. Удачи!</string>
+    <string name="challenge_invalid">Ссылка на челлендж повреждена или устарела</string>
+    <string name="challenge_close">Закрыть</string>
 </resources>
