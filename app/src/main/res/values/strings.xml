@@ -6,4 +6,7 @@
     <string name="challenge_accepted">Челлендж принят. Удачи!</string>
     <string name="challenge_invalid">Ссылка на челлендж повреждена или устарела</string>
     <string name="challenge_close">Закрыть</string>
+    <string name="button_share">Поделиться</string>
+    <string name="share_text">Бросаю тебе челлендж в Chekly: потрать на «%1$s» не больше %2$d ₽ за %3$d дн.\n%4$s</string>
+    <string name="share_chooser_title">Отправить челлендж</string>
 </resources>
