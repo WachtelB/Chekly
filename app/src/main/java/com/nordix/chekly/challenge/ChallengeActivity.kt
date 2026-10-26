@@ -8,12 +8,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
 import com.nordix.chekly.LoggedActivity
 import com.nordix.chekly.ui.theme.CheklyTheme
-
 private const val TAG = "ChallengeActivity"
-private const val KEY_CATEGORY = "challenge_category"
-private const val KEY_LIMIT = "challenge_limit"
-private const val KEY_DAYS = "challenge_days"
 private const val KEY_ACCEPTED = "challenge_accepted"
+private const val KEY_CHALLENGE = "challenge"
 class ChallengeActivity : LoggedActivity() {
 
     private val challenge = mutableStateOf<Challenge?>(null)
@@ -23,7 +20,7 @@ class ChallengeActivity : LoggedActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(KEY_CATEGORY)) {
+        if (savedInstanceState != null && savedInstanceState.containsKey(KEY_CHALLENGE)) {
             restoreState(savedInstanceState)
         } else {
             showLink(intent)
@@ -61,21 +58,13 @@ class ChallengeActivity : LoggedActivity() {
     }
 
     private fun restoreState(saved: Bundle) {
-        challenge.value = Challenge(
-            category = saved.getString(KEY_CATEGORY) ?: "",
-            limitRub = saved.getLong(KEY_LIMIT),
-            days = saved.getInt(KEY_DAYS),
-        )
+        challenge.value = saved.getSerializable(KEY_CHALLENGE) as? Challenge
         accepted.value = saved.getBoolean(KEY_ACCEPTED)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        challenge.value?.let { current ->
-            outState.putString(KEY_CATEGORY, current.category)
-            outState.putLong(KEY_LIMIT, current.limitRub)
-            outState.putInt(KEY_DAYS, current.days)
-            outState.putBoolean(KEY_ACCEPTED, accepted.value)
-        }
+        outState.putBoolean(KEY_ACCEPTED, accepted.value)
+        outState.putSerializable(KEY_CHALLENGE, challenge.value)
     }
 }

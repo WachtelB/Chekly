@@ -1,9 +1,12 @@
 package com.nordix.chekly.challenge
+
+import java.io.Serializable
+
 data class Challenge(
     val category: String,
     val limitRub: Long,
     val days: Int,
-) {
+) : Serializable {
     companion object {
         const val MAX_CATEGORY_LENGTH = 40
         const val MAX_LIMIT_RUB = 10_000_000L
