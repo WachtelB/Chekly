@@ -31,3 +31,10 @@ val SurfaceDark = Color(0xFF1D2026)
 val OnSurfaceDark = Color(0xFFE2E2E9)
 val SurfaceVariantDark = Color(0xFF282C35)
 val OnSurfaceVariantDark = Color(0xFF9EA5B8)
+
+object CategoryColors {
+    val Groceries = Color(0xFF6875D8)
+    val Transport = Color(0xFF7CB2A2)
+    val Cafes = Color(0xFFDFAC74)
+    val Entertainment = Color(0xFFB49FCC)
+}

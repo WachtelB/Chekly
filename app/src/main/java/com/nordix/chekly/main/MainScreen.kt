@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -28,9 +29,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -41,9 +44,14 @@ import com.nordix.chekly.ui.theme.CheklyDimens
 @Composable
 fun MainScreen(
     receipts: List<Receipt>,
+    monthName: String,
     currentTab: Int,
     onTabSelected: (Int) -> Unit
 ) {
+    val fontScale = LocalConfiguration.current.fontScale
+    val isLargeFont = fontScale >= 1.5f
+    val categories = remember(receipts) { calculateCategoryExpenses(receipts) }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
@@ -94,6 +102,15 @@ fun MainScreen(
             }
 
             item {
+                MonthlySummaryCard(
+                    categories = categories,
+                    receiptCount = receipts.size,
+                    monthName = monthName,
+                    isLargeFont = isLargeFont
+                )
+            }
+
+            item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -118,6 +135,110 @@ fun MainScreen(
                 key = { it.id }
             ) { receipt ->
                 ReceiptCard(receipt = receipt)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthlySummaryCard(
+    categories: List<CategoryExpense>,
+    receiptCount: Int,
+    monthName: String,
+    isLargeFont: Boolean
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(CheklyDimens.CardPadding),
+            verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingMedium)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.card_monthly_expenses),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.receipts_count_format, receiptCount),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (isLargeFont) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    DonutChart(
+                        categories = categories,
+                        monthName = monthName
+                    )
+                }
+                CategoryLegend(categories = categories)
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
+                ) {
+                    DonutChart(
+                        categories = categories,
+                        monthName = monthName
+                    )
+                    CategoryLegend(
+                        categories = categories,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryLegend(
+    categories: List<CategoryExpense>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)
+    ) {
+        categories.forEach { category ->
+            val formattedAmount = "%,d".format(category.amountRub).replace(',', ' ')
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(CheklyDimens.CategoryDotSize)
+                        .clip(CircleShape)
+                        .background(category.color)
+                )
+                Text(
+                    text = category.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "$formattedAmount ₽",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }

@@ -11,22 +11,14 @@ import com.nordix.chekly.challenge.Challenge
 import com.nordix.chekly.challenge.ChallengeListScreen
 import com.nordix.chekly.challenge.shareChallenge
 import com.nordix.chekly.main.MainScreen
-import com.nordix.chekly.main.Receipt
+import com.nordix.chekly.main.sampleReceipts
 import com.nordix.chekly.ui.theme.CheklyTheme
-
-
-private val sampleReceipts = listOf(
-    Receipt("1", "Пятёрочка", "Продукты", 1420, "25 окт."),
-    Receipt("2", "Яндекс Заправки", "Транспорт", 2100, "24 окт."),
-    Receipt("3", "Вкусно и точка", "Кафе", 650, "24 окт.")
-)
 
 private val sampleChallenges = listOf(
     Challenge(category = "Еда", limitRub = 5000, days = 7),
     Challenge(category = "Кафе", limitRub = 2000, days = 14),
     Challenge(category = "Транспорт", limitRub = 3000, days = 30),
 )
-
 class MainActivity : LoggedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +31,7 @@ class MainActivity : LoggedActivity() {
                 if (currentTab == 0) {
                     MainScreen(
                         receipts = sampleReceipts,
+                        monthName = "октябрь",
                         currentTab = currentTab,
                         onTabSelected = { currentTab = it }
                     )

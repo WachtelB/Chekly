@@ -17,4 +17,8 @@
 
     <string name="nav_home">Главная</string>
     <string name="nav_challenges">Челленджи</string>
+
+    <string name="card_monthly_expenses">Расходы за месяц</string>
+    <string name="receipts_count_format">%1$d чека</string>
+    <string name="chart_subtitle_format">всего за %1$s</string>
 </resources>
