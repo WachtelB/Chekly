@@ -19,4 +19,6 @@ object CheklyDimens {
     val SheetHorizontalPadding = 24.dp
     val PrimaryButtonHeight = 52.dp
     val AvatarBoxSize = 48.dp
+
+    val StateIconSize = 64.dp
 }

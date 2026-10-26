@@ -13,6 +13,7 @@ import com.nordix.chekly.challenge.ChallengeListScreen
 import com.nordix.chekly.challenge.shareChallenge
 import com.nordix.chekly.main.MainScreen
 import com.nordix.chekly.main.MonthPickerBottomSheet
+import com.nordix.chekly.main.calculateCategoryExpenses
 import com.nordix.chekly.main.sampleReceipts
 import com.nordix.chekly.ui.theme.CheklyTheme
 
@@ -41,19 +42,26 @@ class MainActivity : LoggedActivity() {
                     emptyList()
                 }
 
-                if (currentTab == 0) {
-                    MainScreen(
-                        receipts = currentReceipts,
-                        selectedMonth = selectedMonth,
-                        selectedYear = selectedYear,
-                        currentTab = currentTab,
-                        onTabSelected = { currentTab = it },
-                        onMonthClick = { isMonthSheetOpen = true }
-                    )
-                } else {
+                val categories = calculateCategoryExpenses(currentReceipts)
+
+                val isLoading = selectedMonth.lowercase() == "сентябрь"
+                val isError = currentTab in 1..3
+
+                if (currentTab == 4) {
                     ChallengeListScreen(
                         challenges = sampleChallenges,
                         onShare = { challenge -> shareChallenge(this@MainActivity, challenge) }
+                    )
+                } else {
+                    MainScreen(
+                        receipts = currentReceipts,
+                        categories = categories,
+                        monthName = selectedMonth,
+                        currentTab = currentTab,
+                        isLoading = isLoading,
+                        isError = isError,
+                        onTabSelected = { currentTab = it },
+                        onMonthClick = { isMonthSheetOpen = true }
                     )
                 }
 
