@@ -1,6 +1,5 @@
 package com.nordix.chekly.main
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
@@ -29,10 +26,9 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,171 +51,131 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.nordix.chekly.R
 import com.nordix.chekly.ui.theme.CheklyDimens
-import com.nordix.chekly.ui.theme.CheklyTheme
 
 @Composable
 fun MainScreen(
     receipts: List<Receipt>,
-    categories: List<CategoryExpense>,
-    monthName: String,
+    selectedMonth: String,
+    selectedYear: Int,
     currentTab: Int,
-    isLoading: Boolean,
-    isError: Boolean,
     onTabSelected: (Int) -> Unit,
-    onMonthClick: () -> Unit
+    onMonthClick: () -> Unit,
+    onSeeAllClick: () -> Unit,
+    onAddReceiptClick: () -> Unit,
+    onProfileClick: () -> Unit
 ) {
     val fontScale = LocalConfiguration.current.fontScale
     val isLargeFont = fontScale >= 1.5f
+    val categories = remember(receipts) { calculateCategoryExpenses(receipts) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                NavigationBarItem(
-                    selected = currentTab == 0,
-                    onClick = { onTabSelected(0) },
-                    icon = { Icon(Icons.Default.Home, null) },
-                    label = { Text(stringResource(R.string.nav_home)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == 1,
-                    onClick = { onTabSelected(1) },
-                    icon = { Icon(Icons.Default.Menu, null) },
-                    label = { Text(stringResource(R.string.nav_history)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == 2,
-                    onClick = { onTabSelected(2) },
-                    icon = { Icon(Icons.Default.Add, null) },
-                    label = { Text(stringResource(R.string.nav_add)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == 3,
-                    onClick = { onTabSelected(3) },
-                    icon = { Icon(Icons.Default.DateRange, null) },
-                    label = { Text(stringResource(R.string.nav_budget)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == 4,
-                    onClick = { onTabSelected(4) },
-                    icon = { Icon(Icons.Default.Star, null) },
-                    label = { Text(stringResource(R.string.nav_challenges)) }
-                )
-            }
+            CheklyBottomBar(
+                currentTab = currentTab,
+                onTabSelected = onTabSelected
+            )
         },
         floatingActionButton = {
-            if (currentTab == 0 && !isLoading && !isError) {
+            if (currentTab == 0) {
                 ExtendedFloatingActionButton(
-                    onClick = { },
+                    onClick = onAddReceiptClick,
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = RoundedCornerShape(16.dp)
+                    shape = MaterialTheme.shapes.medium
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(CheklyDimens.SpacingSmall))
                     Text(text = stringResource(R.string.button_add_receipt))
                 }
             }
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = innerPadding.calculateBottomPadding()
-                )
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding() + CheklyDimens.SpacingSmall,
+                bottom = innerPadding.calculateBottomPadding() + CheklyDimens.FabBottomClearance,
+                start = CheklyDimens.ScreenPadding,
+                end = CheklyDimens.ScreenPadding
+            ),
+            verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
         ) {
-            TopHeaderBar(
-                month = monthName,
-                year = 2026,
-                onMonthClick = onMonthClick,
-                modifier = Modifier.padding(
-                    horizontal = CheklyDimens.ScreenPadding,
-                    vertical = CheklyDimens.SpacingSmall
+            item {
+                TopHeaderBar(
+                    month = selectedMonth,
+                    year = selectedYear,
+                    onMonthClick = onMonthClick,
+                    onProfileClick = onProfileClick
                 )
-            )
+            }
 
-            if (isLoading) {
-                LoadingStateView()
-            } else if (isError) {
-                ErrorStateView()
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        top = CheklyDimens.SpacingSmall,
-                        bottom = CheklyDimens.ScreenPadding + 80.dp,
-                        start = CheklyDimens.ScreenPadding,
-                        end = CheklyDimens.ScreenPadding
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
                 ) {
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.Bottom
+                    Text(
+                        text = stringResource(R.string.main_title_expenses),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.semantics { heading() }
+                    )
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            if (receipts.isEmpty()) {
+                item {
+                    EmptyStateView(
+                        monthName = selectedMonth,
+                        year = selectedYear,
+                        onAddReceiptClick = onAddReceiptClick
+                    )
+                }
+            } else {
+                item {
+                    MonthlySummaryCard(
+                        categories = categories,
+                        receiptCount = receipts.size,
+                        monthName = selectedMonth.lowercase(),
+                        isLargeFont = isLargeFont
+                    )
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.section_recent_receipts),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.semantics { heading() }
+                        )
+                        TextButton(
+                            onClick = onSeeAllClick,
+                            modifier = Modifier.heightIn(min = CheklyDimens.MinTouchTarget)
                         ) {
-                            Text(
-                                text = stringResource(R.string.main_title_expenses),
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                modifier = Modifier.semantics { heading() }
-                            )
-                            Text(
-                                text = stringResource(R.string.app_name),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                            Text(stringResource(R.string.button_see_all))
                         }
                     }
+                }
 
-                    if (receipts.isEmpty()) {
-                        item {
-                            EmptyStateView(monthName = monthName, year = 2026)
-                        }
-                    } else {
-                        item {
-                            MonthlySummaryCard(
-                                categories = categories,
-                                receiptCount = receipts.size,
-                                monthName = monthName.lowercase(),
-                                isLargeFont = isLargeFont
-                            )
-                        }
-
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.section_recent_receipts),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                TextButton(
-                                    onClick = {},
-                                    modifier = Modifier.heightIn(min = CheklyDimens.MinTouchTarget)
-                                ) {
-                                    Text(stringResource(R.string.button_see_all))
-                                }
-                            }
-                        }
-
-                        items(
-                            items = receipts,
-                            key = { it.id }
-                        ) { receipt ->
-                            ReceiptCard(receipt = receipt)
-                        }
-                    }
+                items(
+                    items = receipts,
+                    key = { it.id }
+                ) { receipt ->
+                    ReceiptCard(receipt = receipt)
                 }
             }
         }
@@ -227,55 +183,54 @@ fun MainScreen(
 }
 
 @Composable
-private fun LoadingStateView() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-        Spacer(modifier = Modifier.height(CheklyDimens.SpacingLarge))
-        Text(
-            text = stringResource(R.string.state_loading),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+fun CheklyBottomBar(
+    currentTab: Int,
+    onTabSelected: (Int) -> Unit
+) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+        NavigationBarItem(
+            selected = currentTab == 0,
+            onClick = { onTabSelected(0) },
+            icon = { Icon(Icons.Default.Home, contentDescription = null) },
+            label = { Text(stringResource(R.string.nav_home)) }
+        )
+        NavigationBarItem(
+            selected = currentTab == 1,
+            onClick = { onTabSelected(1) },
+            icon = { Icon(Icons.Default.Menu, contentDescription = null) },
+            label = { Text(stringResource(R.string.nav_history)) }
+        )
+        NavigationBarItem(
+            selected = currentTab == 2,
+            onClick = { onTabSelected(2) },
+            icon = { Icon(Icons.Default.Add, contentDescription = null) },
+            label = { Text(stringResource(R.string.nav_add)) }
+        )
+        NavigationBarItem(
+            selected = currentTab == 3,
+            onClick = { onTabSelected(3) },
+            icon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+            label = { Text(stringResource(R.string.nav_budget)) }
+        )
+        NavigationBarItem(
+            selected = currentTab == 4,
+            onClick = { onTabSelected(4) },
+            icon = { Icon(Icons.Default.Star, contentDescription = null) },
+            label = { Text(stringResource(R.string.nav_challenges)) }
         )
     }
 }
 
 @Composable
-private fun ErrorStateView() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Warning,
-            contentDescription = null,
-            modifier = Modifier.size(CheklyDimens.StateIconSize),
-            tint = MaterialTheme.colorScheme.error
-        )
-        Spacer(modifier = Modifier.height(CheklyDimens.SpacingMedium))
-        Text(
-            text = stringResource(R.string.state_error_title),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = stringResource(R.string.state_error_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun EmptyStateView(monthName: String, year: Int) {
+private fun EmptyStateView(
+    monthName: String,
+    year: Int,
+    onAddReceiptClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 64.dp),
+            .padding(vertical = CheklyDimens.EmptyStateVerticalPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingMedium)
     ) {
@@ -286,34 +241,48 @@ private fun EmptyStateView(monthName: String, year: Int) {
             tint = MaterialTheme.colorScheme.surfaceVariant
         )
         Text(
-            text = "За $monthName $year пока нет чеков",
+            text = stringResource(R.string.state_empty_title, monthName, year),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Добавьте чек или импортируйте покупки",
+            text = stringResource(R.string.state_empty_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+        Button(
+            onClick = onAddReceiptClick,
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.heightIn(min = CheklyDimens.MinTouchTarget)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(modifier = Modifier.width(CheklyDimens.SpacingSmall))
+            Text(text = stringResource(R.string.button_add_receipt))
+        }
     }
 }
 
 @Composable
-private fun TopHeaderBar(month: String, year: Int, onMonthClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun TopHeaderBar(
+    month: String,
+    year: Int,
+    onMonthClick: () -> Unit,
+    onProfileClick: () -> Unit
+) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Surface(
             modifier = Modifier
                 .heightIn(min = CheklyDimens.MinTouchTarget)
-                .clip(RoundedCornerShape(24.dp))
+                .clip(MaterialTheme.shapes.large)
                 .clickable(onClick = onMonthClick)
                 .semantics { role = Role.Button },
-            shape = RoundedCornerShape(24.dp),
+            shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surface
         ) {
             Row(
@@ -342,7 +311,7 @@ private fun TopHeaderBar(month: String, year: Int, onMonthClick: () -> Unit, mod
             color = MaterialTheme.colorScheme.primaryContainer,
             modifier = Modifier.size(CheklyDimens.AvatarBoxSize)
         ) {
-            IconButton(onClick = {}) {
+            IconButton(onClick = onProfileClick) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = stringResource(R.string.a11y_profile),
@@ -354,10 +323,15 @@ private fun TopHeaderBar(month: String, year: Int, onMonthClick: () -> Unit, mod
 }
 
 @Composable
-private fun MonthlySummaryCard(categories: List<CategoryExpense>, receiptCount: Int, monthName: String, isLargeFont: Boolean) {
+private fun MonthlySummaryCard(
+    categories: List<CategoryExpense>,
+    receiptCount: Int,
+    monthName: String,
+    isLargeFont: Boolean
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
@@ -384,10 +358,19 @@ private fun MonthlySummaryCard(categories: List<CategoryExpense>, receiptCount: 
             }
 
             if (isLargeFont) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { DonutChart(categories = categories, monthName = monthName) }
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    DonutChart(categories = categories, monthName = monthName)
+                }
                 CategoryLegend(categories = categories)
             } else {
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
+                ) {
                     DonutChart(categories = categories, monthName = monthName)
                     CategoryLegend(categories = categories, modifier = Modifier.weight(1f))
                 }
@@ -397,14 +380,37 @@ private fun MonthlySummaryCard(categories: List<CategoryExpense>, receiptCount: 
 }
 
 @Composable
-private fun CategoryLegend(categories: List<CategoryExpense>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)) {
+private fun CategoryLegend(
+    categories: List<CategoryExpense>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)
+    ) {
         categories.forEach { category ->
             val formattedAmount = "%,d".format(category.amountRub).replace(',', ' ')
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)) {
-                Box(modifier = Modifier.size(CheklyDimens.CategoryDotSize).clip(CircleShape).background(category.color))
-                Text(text = category.name, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
-                Text(text = "$formattedAmount ₽", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(CheklyDimens.CategoryDotSize)
+                        .clip(CircleShape)
+                        .background(category.color)
+                )
+                Text(
+                    text = category.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "$formattedAmount ₽",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
@@ -413,8 +419,10 @@ private fun CategoryLegend(categories: List<CategoryExpense>, modifier: Modifier
 @Composable
 private fun ReceiptCard(receipt: Receipt) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {},
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
@@ -424,8 +432,14 @@ private fun ReceiptCard(receipt: Receipt) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingMedium)
         ) {
-            Box(modifier = Modifier.size(CheklyDimens.IconBoxSize).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.ShoppingCart, null, tint = MaterialTheme.colorScheme.primary)
+            Box(
+                modifier = Modifier
+                    .size(CheklyDimens.IconBoxSize)
+                    .clip(MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(receipt.shopName, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
@@ -436,56 +450,5 @@ private fun ReceiptCard(receipt: Receipt) {
                 Text(receipt.dateText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-    }
-}
-
-@Preview(showBackground = true, name = "Светлая тема (Content)")
-@Composable
-private fun MainScreenPreviewLight() {
-    CheklyTheme(darkTheme = false, dynamicColor = false) {
-        MainScreen(
-            receipts = sampleReceipts,
-            categories = calculateCategoryExpenses(sampleReceipts),
-            monthName = "Октябрь",
-            currentTab = 0,
-            isLoading = false,
-            isError = false,
-            onTabSelected = {},
-            onMonthClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Тёмная тема (Error)")
-@Composable
-private fun MainScreenPreviewDark() {
-    CheklyTheme(darkTheme = true, dynamicColor = false) {
-        MainScreen(
-            receipts = emptyList(),
-            categories = emptyList(),
-            monthName = "Октябрь",
-            currentTab = 1,
-            isLoading = false,
-            isError = true,
-            onTabSelected = {},
-            onMonthClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, fontScale = 2.0f, name = "Крупный шрифт 200%")
-@Composable
-private fun MainScreenPreviewFontScale() {
-    CheklyTheme(darkTheme = false, dynamicColor = false) {
-        MainScreen(
-            receipts = sampleReceipts,
-            categories = calculateCategoryExpenses(sampleReceipts),
-            monthName = "Октябрь",
-            currentTab = 0,
-            isLoading = false,
-            isError = false,
-            onTabSelected = {},
-            onMonthClick = {}
-        )
     }
 }

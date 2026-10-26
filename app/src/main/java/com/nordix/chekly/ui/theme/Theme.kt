@@ -35,7 +35,6 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = SurfaceVariantDark,
     onSurfaceVariant = OnSurfaceVariantDark,
 )
-
 @Composable
 fun CheklyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -53,6 +52,7 @@ fun CheklyTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        shapes = CheklyShapes,
         content = content
     )
 }

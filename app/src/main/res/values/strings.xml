@@ -29,9 +29,9 @@
     <string name="button_add_receipt">Добавить чек</string>
     <string name="sheet_select_month">Выберите месяц</string>
     <string name="a11y_change_month">Выбрать другой месяц</string>
+    <string name="a11y_edit_year">Редактировать год</string>
     <string name="a11y_profile">Профиль пользователя</string>
 
-    <string name="state_loading">Синхронизация чеков…</string>
-    <string name="state_error_title">В разработке</string>
-    <string name="state_error_subtitle">Раздел будет доступен в следующих работах</string>
+    <string name="state_empty_title">За %1$s %2$d пока нет чеков</string>
+    <string name="state_empty_subtitle">Добавьте чек или импортируйте покупки</string>
 </resources>

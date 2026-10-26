@@ -3,7 +3,6 @@ package com.nordix.chekly.main
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -49,7 +47,6 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import com.nordix.chekly.R
 import com.nordix.chekly.ui.theme.CheklyDimens
 
@@ -67,7 +64,6 @@ fun MonthPickerBottomSheet(
     onApply: (month: String, year: Int) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
     var selectedMonth by rememberSaveable { mutableStateOf(currentMonth) }
     var yearInput by rememberSaveable { mutableStateOf(currentYear.toString()) }
     var isEditingYear by remember { mutableStateOf(false) }
@@ -75,7 +71,7 @@ fun MonthPickerBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
@@ -107,16 +103,16 @@ fun MonthPickerBottomSheet(
                         keyboardActions = KeyboardActions(onDone = { isEditingYear = false }),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         modifier = Modifier
-                            .width(64.dp)
-                            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(4.dp))
-                            .padding(4.dp)
+                            .width(CheklyDimens.YearInputWidth)
+                            .background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.extraSmall)
+                            .padding(CheklyDimens.SpacingXSmall)
                     )
                 } else {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .heightIn(min = CheklyDimens.MinTouchTarget)
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(MaterialTheme.shapes.small)
                             .clickable { isEditingYear = true }
                             .padding(horizontal = CheklyDimens.SpacingSmall)
                     ) {
@@ -127,9 +123,11 @@ fun MonthPickerBottomSheet(
                         )
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Редактировать год",
+                            contentDescription = stringResource(R.string.a11y_edit_year),
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp).padding(start = 4.dp)
+                            modifier = Modifier
+                                .size(CheklyDimens.EditIconSize)
+                                .padding(start = CheklyDimens.SpacingXSmall)
                         )
                     }
                 }
@@ -145,14 +143,14 @@ fun MonthPickerBottomSheet(
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .clip(RoundedCornerShape(12.dp))
+                            .padding(vertical = CheklyDimens.SpacingXSmall)
+                            .clip(MaterialTheme.shapes.small)
                             .clickable { selectedMonth = month }
                             .semantics(mergeDescendants = true) {
                                 role = Role.RadioButton
                                 selected = isSelected
                             },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = MaterialTheme.shapes.small,
                         color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
                     ) {
                         Row(
@@ -191,7 +189,7 @@ fun MonthPickerBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = CheklyDimens.PrimaryButtonHeight),
-                shape = RoundedCornerShape(16.dp)
+                shape = MaterialTheme.shapes.medium
             ) {
                 Text(
                     text = stringResource(R.string.button_apply),

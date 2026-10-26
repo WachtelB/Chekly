@@ -3,17 +3,21 @@ package com.nordix.chekly
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import com.nordix.chekly.challenge.Challenge
 import com.nordix.chekly.challenge.ChallengeListScreen
 import com.nordix.chekly.challenge.shareChallenge
+import com.nordix.chekly.main.CheklyBottomBar
 import com.nordix.chekly.main.MainScreen
 import com.nordix.chekly.main.MonthPickerBottomSheet
-import com.nordix.chekly.main.calculateCategoryExpenses
 import com.nordix.chekly.main.sampleReceipts
 import com.nordix.chekly.ui.theme.CheklyTheme
 
@@ -31,7 +35,6 @@ class MainActivity : LoggedActivity() {
         setContent {
             CheklyTheme {
                 var currentTab by rememberSaveable { mutableIntStateOf(0) }
-
                 var selectedMonth by rememberSaveable { mutableStateOf("Октябрь") }
                 var selectedYear by rememberSaveable { mutableIntStateOf(2026) }
                 var isMonthSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -42,26 +45,33 @@ class MainActivity : LoggedActivity() {
                     emptyList()
                 }
 
-                val categories = calculateCategoryExpenses(currentReceipts)
-
-                val isLoading = selectedMonth.lowercase() == "сентябрь"
-                val isError = currentTab in 1..3
-
                 if (currentTab == 4) {
-                    ChallengeListScreen(
-                        challenges = sampleChallenges,
-                        onShare = { challenge -> shareChallenge(this@MainActivity, challenge) }
-                    )
+                    Scaffold(
+                        bottomBar = {
+                            CheklyBottomBar(
+                                currentTab = currentTab,
+                                onTabSelected = { currentTab = it }
+                            )
+                        }
+                    ) { innerPadding ->
+                        Box(modifier = Modifier.padding(innerPadding)) {
+                            ChallengeListScreen(
+                                challenges = sampleChallenges,
+                                onShare = { challenge -> shareChallenge(this@MainActivity, challenge) }
+                            )
+                        }
+                    }
                 } else {
                     MainScreen(
                         receipts = currentReceipts,
-                        categories = categories,
-                        monthName = selectedMonth,
+                        selectedMonth = selectedMonth,
+                        selectedYear = selectedYear,
                         currentTab = currentTab,
-                        isLoading = isLoading,
-                        isError = isError,
                         onTabSelected = { currentTab = it },
-                        onMonthClick = { isMonthSheetOpen = true }
+                        onMonthClick = { isMonthSheetOpen = true },
+                        onSeeAllClick = { currentTab = 1 },
+                        onAddReceiptClick = { currentTab = 2 },
+                        onProfileClick = { currentTab = 4 }
                     )
                 }
 
