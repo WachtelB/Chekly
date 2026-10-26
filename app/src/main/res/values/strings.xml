@@ -21,4 +21,9 @@
     <string name="card_monthly_expenses">Расходы за месяц</string>
     <string name="receipts_count_format">%1$d чека</string>
     <string name="chart_subtitle_format">всего за %1$s</string>
+
+    <string name="button_apply">Применить</string>
+    <string name="sheet_select_month">Выберите месяц</string>
+    <string name="a11y_change_month">Выбрать другой месяц</string>
+    <string name="a11y_profile">Профиль пользователя</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.nordix.chekly.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,15 +18,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,8 +40,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nordix.chekly.R
 import com.nordix.chekly.ui.theme.CheklyDimens
@@ -44,9 +52,11 @@ import com.nordix.chekly.ui.theme.CheklyDimens
 @Composable
 fun MainScreen(
     receipts: List<Receipt>,
-    monthName: String,
+    selectedMonth: String,
+    selectedYear: Int,
     currentTab: Int,
-    onTabSelected: (Int) -> Unit
+    onTabSelected: (Int) -> Unit,
+    onMonthClick: () -> Unit
 ) {
     val fontScale = LocalConfiguration.current.fontScale
     val isLargeFont = fontScale >= 1.5f
@@ -74,13 +84,21 @@ fun MainScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding() + CheklyDimens.ScreenPadding,
+                top = innerPadding.calculateTopPadding() + CheklyDimens.SpacingSmall,
                 bottom = innerPadding.calculateBottomPadding() + CheklyDimens.ScreenPadding,
                 start = CheklyDimens.ScreenPadding,
                 end = CheklyDimens.ScreenPadding
             ),
             verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
         ) {
+            item {
+                TopHeaderBar(
+                    month = selectedMonth,
+                    year = selectedYear,
+                    onMonthClick = onMonthClick
+                )
+            }
+
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -101,52 +119,136 @@ fun MainScreen(
                 }
             }
 
-            item {
-                MonthlySummaryCard(
-                    categories = categories,
-                    receiptCount = receipts.size,
-                    monthName = monthName,
-                    isLargeFont = isLargeFont
-                )
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.section_recent_receipts),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground
+            if (receipts.isEmpty()) {
+                item {
+                    EmptyStateView(monthName = selectedMonth, year = selectedYear)
+                }
+            } else {
+                item {
+                    MonthlySummaryCard(
+                        categories = categories,
+                        receiptCount = receipts.size,
+                        monthName = selectedMonth.lowercase(),
+                        isLargeFont = isLargeFont
                     )
-                    TextButton(
-                        onClick = {},
-                        modifier = Modifier.heightIn(min = CheklyDimens.MinTouchTarget)
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(stringResource(R.string.button_see_all))
+                        Text(
+                            text = stringResource(R.string.section_recent_receipts),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        TextButton(
+                            onClick = {},
+                            modifier = Modifier.heightIn(min = CheklyDimens.MinTouchTarget)
+                        ) {
+                            Text(stringResource(R.string.button_see_all))
+                        }
                     }
                 }
-            }
 
-            items(
-                items = receipts,
-                key = { it.id }
-            ) { receipt ->
-                ReceiptCard(receipt = receipt)
+                items(
+                    items = receipts,
+                    key = { it.id }
+                ) { receipt ->
+                    ReceiptCard(receipt = receipt)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun MonthlySummaryCard(
-    categories: List<CategoryExpense>,
-    receiptCount: Int,
-    monthName: String,
-    isLargeFont: Boolean
-) {
+private fun EmptyStateView(monthName: String, year: Int) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 64.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingMedium)
+    ) {
+        Icon(
+            imageVector = Icons.Default.ShoppingCart,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.surfaceVariant
+        )
+        Text(
+            text = "За $monthName $year пока нет чеков",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = "Добавьте чек или импортируйте покупки",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun TopHeaderBar(month: String, year: Int, onMonthClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            modifier = Modifier
+                .heightIn(min = CheklyDimens.MinTouchTarget)
+                .clip(RoundedCornerShape(24.dp))
+                .clickable(onClick = onMonthClick)
+                .semantics { role = Role.Button },
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Row(
+                modifier = Modifier.padding(
+                    horizontal = CheklyDimens.SpacingLarge,
+                    vertical = CheklyDimens.SpacingSmall
+                ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)
+            ) {
+                Text(
+                    text = "$month $year",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = stringResource(R.string.a11y_change_month),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(CheklyDimens.AvatarBoxSize)
+        ) {
+            IconButton(onClick = {}) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = stringResource(R.string.a11y_profile),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthlySummaryCard(categories: List<CategoryExpense>, receiptCount: Int, monthName: String, isLargeFont: Boolean) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -176,30 +278,12 @@ private fun MonthlySummaryCard(
             }
 
             if (isLargeFont) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    DonutChart(
-                        categories = categories,
-                        monthName = monthName
-                    )
-                }
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { DonutChart(categories = categories, monthName = monthName) }
                 CategoryLegend(categories = categories)
             } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
-                ) {
-                    DonutChart(
-                        categories = categories,
-                        monthName = monthName
-                    )
-                    CategoryLegend(
-                        categories = categories,
-                        modifier = Modifier.weight(1f)
-                    )
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)) {
+                    DonutChart(categories = categories, monthName = monthName)
+                    CategoryLegend(categories = categories, modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -207,38 +291,14 @@ private fun MonthlySummaryCard(
 }
 
 @Composable
-private fun CategoryLegend(
-    categories: List<CategoryExpense>,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)
-    ) {
+private fun CategoryLegend(categories: List<CategoryExpense>, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)) {
         categories.forEach { category ->
             val formattedAmount = "%,d".format(category.amountRub).replace(',', ' ')
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(CheklyDimens.CategoryDotSize)
-                        .clip(CircleShape)
-                        .background(category.color)
-                )
-                Text(
-                    text = category.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "$formattedAmount ₽",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)) {
+                Box(modifier = Modifier.size(CheklyDimens.CategoryDotSize).clip(CircleShape).background(category.color))
+                Text(text = category.name, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                Text(text = "$formattedAmount ₽", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
             }
         }
     }
@@ -252,50 +312,20 @@ private fun ReceiptCard(receipt: Receipt) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(CheklyDimens.ScreenPadding),
+            modifier = Modifier.fillMaxWidth().padding(CheklyDimens.ScreenPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingMedium)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(CheklyDimens.IconBoxSize)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ShoppingCart,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
+            Box(modifier = Modifier.size(CheklyDimens.IconBoxSize).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.ShoppingCart, null, tint = MaterialTheme.colorScheme.primary)
             }
-
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = receipt.shopName,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = receipt.category,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(receipt.shopName, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(receipt.category, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-
             Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = stringResource(R.string.receipt_amount_format, receipt.amountRub),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = receipt.dateText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(stringResource(R.string.receipt_amount_format, receipt.amountRub), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(receipt.dateText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

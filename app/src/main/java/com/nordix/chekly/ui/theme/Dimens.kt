@@ -15,4 +15,8 @@ object CheklyDimens {
     val CategoryDotSize = 10.dp
     val DonutChartSize = 140.dp
     val DonutStrokeWidth = 14.dp
+
+    val SheetHorizontalPadding = 24.dp
+    val PrimaryButtonHeight = 52.dp
+    val AvatarBoxSize = 48.dp
 }
