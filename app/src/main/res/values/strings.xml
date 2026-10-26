@@ -9,4 +9,12 @@
     <string name="button_share">Поделиться</string>
     <string name="share_text">Бросаю тебе челлендж в Chekly: потрать на «%1$s» не больше %2$d ₽ за %3$d дн.\n%4$s</string>
     <string name="share_chooser_title">Отправить челлендж</string>
+
+    <string name="main_title_expenses">Мои расходы</string>
+    <string name="section_recent_receipts">Последние чеки</string>
+    <string name="button_see_all">Все</string>
+    <string name="receipt_amount_format">−%1$d ₽</string>
+
+    <string name="nav_home">Главная</string>
+    <string name="nav_challenges">Челленджи</string>
 </resources>
