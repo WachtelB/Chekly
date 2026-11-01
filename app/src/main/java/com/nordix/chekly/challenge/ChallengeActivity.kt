@@ -61,10 +61,10 @@ class ChallengeActivity : LoggedActivity() {
         challenge.value = saved.getSerializable(KEY_CHALLENGE) as? Challenge
         accepted.value = saved.getBoolean(KEY_ACCEPTED)
     }
-
+/*
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_ACCEPTED, accepted.value)
         outState.putSerializable(KEY_CHALLENGE, challenge.value)
-    }
+    }*/
 }
