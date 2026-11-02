@@ -6,6 +6,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -15,11 +16,13 @@ import androidx.compose.ui.Modifier
 import com.nordix.chekly.challenge.Challenge
 import com.nordix.chekly.challenge.ChallengeListScreen
 import com.nordix.chekly.challenge.shareChallenge
-import com.nordix.chekly.main.CheklyBottomBar
+import com.nordix.chekly.main.BottomBar
 import com.nordix.chekly.main.MainScreen
 import com.nordix.chekly.main.MonthPickerBottomSheet
 import com.nordix.chekly.main.sampleReceipts
 import com.nordix.chekly.ui.theme.CheklyTheme
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 private val sampleChallenges = listOf(
     Challenge(category = "Еда", limitRub = 5000, days = 7),
@@ -38,6 +41,14 @@ class MainActivity : LoggedActivity() {
                 var selectedMonth by rememberSaveable { mutableStateOf("Октябрь") }
                 var selectedYear by rememberSaveable { mutableIntStateOf(2026) }
                 var isMonthSheetOpen by rememberSaveable { mutableStateOf(false) }
+                var isInitialLoading by rememberSaveable { mutableStateOf(true) }
+
+                LaunchedEffect(Unit) {
+                    if (isInitialLoading) {
+                        delay(1500.milliseconds)
+                        isInitialLoading = false
+                    }
+                }
 
                 val currentReceipts = if (selectedMonth.lowercase() == "октябрь" && selectedYear == 2026) {
                     sampleReceipts
@@ -48,7 +59,7 @@ class MainActivity : LoggedActivity() {
                 if (currentTab == 4) {
                     Scaffold(
                         bottomBar = {
-                            CheklyBottomBar(
+                            BottomBar(
                                 currentTab = currentTab,
                                 onTabSelected = { currentTab = it }
                             )
@@ -67,6 +78,7 @@ class MainActivity : LoggedActivity() {
                         selectedMonth = selectedMonth,
                         selectedYear = selectedYear,
                         currentTab = currentTab,
+                        isInitialLoading = isInitialLoading,
                         onTabSelected = { currentTab = it },
                         onMonthClick = { isMonthSheetOpen = true },
                         onSeeAllClick = { currentTab = 1 },
