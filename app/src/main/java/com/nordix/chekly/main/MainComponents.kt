@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
@@ -38,8 +38,8 @@ fun TopHeaderBar(
     onPrevClick: () -> Unit,
     onNextClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onPeriodClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPeriodClick: () -> Unit = {}
 ) {
     Surface(
         color = MaterialTheme.colorScheme.primary,
@@ -56,7 +56,7 @@ fun TopHeaderBar(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onPrevClick) {
                     Icon(
-                        imageVector = Icons.Default.KeyboardArrowLeft,
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                         contentDescription = stringResource(R.string.a11y_prev_month),
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
@@ -75,7 +75,7 @@ fun TopHeaderBar(
                 )
                 IconButton(onClick = onNextClick) {
                     Icon(
-                        imageVector = Icons.Default.KeyboardArrowRight,
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = stringResource(R.string.a11y_next_month),
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
