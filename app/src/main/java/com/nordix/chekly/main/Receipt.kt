@@ -1,8 +1,10 @@
 package com.nordix.chekly.main
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.nordix.chekly.ui.theme.CategoryColors
 
+@Immutable
 data class Receipt(
     val id: String,
     val shopName: String,
@@ -11,6 +13,7 @@ data class Receipt(
     val dateText: String
 )
 
+@Immutable
 data class CategoryExpense(
     val name: String,
     val amountRub: Long,
