@@ -234,3 +234,20 @@ fun ReceiptCard(
         }
     }
 }
+
+@Composable
+fun CheklySearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    placeholderText: String,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.material3.OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier.fillMaxWidth(),
+        placeholder = { Text(placeholderText) },
+        singleLine = true,
+        shape = MaterialTheme.shapes.medium
+    )
+}

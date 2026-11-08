@@ -58,6 +58,7 @@ fun LoadingStateView(
 
 @Composable
 fun ErrorStateView(
+    message: String,
     onRetryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -85,7 +86,7 @@ fun ErrorStateView(
                 modifier = Modifier.semantics { heading() }
             )
             Text(
-                text = "Раздел временно недоступен. Попробуйте обновить или вернуться на главную.",
+                text = message,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center

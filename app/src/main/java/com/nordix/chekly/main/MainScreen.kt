@@ -1,5 +1,6 @@
 package com.nordix.chekly.main
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -23,58 +25,74 @@ import com.nordix.chekly.R
 import com.nordix.chekly.ui.theme.CheklyDimens
 
 @Composable
-fun MainScreen(
-    receipts: List<Receipt>,
-    categories: List<CategoryExpense>,
-    periodText: String,
-    isLoading: Boolean,
-    isError: Boolean,
-    onPrevMonthClick: () -> Unit,
-    onNextMonthClick: () -> Unit,
+fun MainScreenContent(
+    state: MainUiState,
+    onAction: (MainAction) -> Unit,
     onSeeAllClick: () -> Unit,
     onProfileClick: () -> Unit,
     onAddReceiptClick: () -> Unit,
-    onPeriodClick: () -> Unit = {}
+    modifier: Modifier = Modifier
 ) {
     val fontScale = LocalConfiguration.current.fontScale
     val isLargeFont = fontScale >= 1.5f
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         TopHeaderBar(
-            periodText = periodText,
-            onPrevClick = onPrevMonthClick,
-            onNextClick = onNextMonthClick,
+            periodText = state.periodText,
+            onPrevClick = { onAction(MainAction.PrevMonthClick) },
+            onNextClick = { onAction(MainAction.NextMonthClick) },
             onProfileClick = onProfileClick,
-            onPeriodClick = onPeriodClick
+            onPeriodClick = { onAction(MainAction.OpenMonthPicker) }
         )
 
-        if (isLoading) {
-            LoadingStateView()
-        } else if (isError) {
-            ErrorStateView(onRetryClick = {})
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    top = CheklyDimens.SpacingLarge,
-                    bottom = CheklyDimens.ScreenPadding,
-                    start = CheklyDimens.ScreenPadding,
-                    end = CheklyDimens.ScreenPadding
-                ),
-                verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
-            ) {
-                if (receipts.isEmpty()) {
+        CheklySearchField(
+            query = state.searchQuery,
+            onQueryChange = { onAction(MainAction.QueryChanged(it)) },
+            placeholderText = "Поиск по магазину или категории...",
+            modifier = Modifier.padding(
+                horizontal = CheklyDimens.ScreenPadding,
+                vertical = CheklyDimens.SpacingSmall
+            )
+        )
+
+        when (val result = state.result) {
+            MainResult.Loading -> {
+                LoadingStateView()
+            }
+            is MainResult.Error -> {
+                ErrorStateView(
+                    message = result.message,
+                    onRetryClick = { onAction(MainAction.Retry) }
+                )
+            }
+            MainResult.Empty -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(CheklyDimens.ScreenPadding)
+                ) {
                     item {
                         EmptyStateView(
-                            monthName = periodText,
-                            year = 2026,
+                            monthName = state.selectedMonth,
+                            year = state.selectedYear,
                             onAddReceiptClick = onAddReceiptClick
                         )
                     }
-                } else {
+                }
+            }
+            is MainResult.Content -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        top = CheklyDimens.SpacingSmall,
+                        bottom = CheklyDimens.ScreenPadding,
+                        start = CheklyDimens.ScreenPadding,
+                        end = CheklyDimens.ScreenPadding
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
+                ) {
                     item {
                         MonthlySummaryCard(
-                            categories = categories,
+                            categories = result.categories,
                             isLargeFont = isLargeFont
                         )
                     }
@@ -101,10 +119,15 @@ fun MainScreen(
                     }
 
                     items(
-                        items = receipts,
+                        items = result.receipts,
                         key = { it.id }
                     ) { receipt ->
-                        ReceiptCard(receipt = receipt)
+                        ReceiptCard(
+                            receipt = receipt,
+                            modifier = Modifier.clickable {
+                                onAction(MainAction.ReceiptClicked(receipt.shopName))
+                            }
+                        )
                     }
                 }
             }
