@@ -1,12 +1,42 @@
 <resources>
     <string name="app_name">Chekly</string>
-    <string name="challenge_title">Вам бросили челлендж!</string>
-    <string name="challenge_description">Потратьте на «%1$s» не больше %2$d ₽ за %3$d дн.</string>
-    <string name="challenge_accept">Принять</string>
-    <string name="challenge_accepted">Челлендж принят. Удачи!</string>
-    <string name="challenge_invalid">Ссылка на челлендж повреждена или устарела</string>
+    <string name="challenge_title">Финансовый челлендж</string>
+    <string name="challenge_description">%1$s: не более %2$d ₽ за %3$d дн.</string>
+    <string name="challenge_accept">Принять челлендж</string>
+    <string name="challenge_accepted">Челлендж принят!</string>
     <string name="challenge_close">Закрыть</string>
+    <string name="challenge_invalid">Некорректная или повреждённая ссылка челленджа</string>
     <string name="button_share">Поделиться</string>
-    <string name="share_text">Бросаю тебе челлендж в Chekly: потрать на «%1$s» не больше %2$d ₽ за %3$d дн.\n%4$s</string>
-    <string name="share_chooser_title">Отправить челлендж</string>
+    <string name="share_text">Попробуй челлендж: %1$s, лимит: %2$d ₽ на %3$d дн.\n%4$s</string>
+    <string name="share_chooser_title">Поделиться челленджем</string>
+
+    <string name="section_recent_receipts">Последние чеки</string>
+    <string name="button_see_all">Все</string>
+    <string name="receipt_amount_format">−%1$d ₽</string>
+
+    <string name="nav_home">Главная</string>
+    <string name="nav_history">История</string>
+    <string name="nav_add">Добавить</string>
+    <string name="nav_budget">Бюджет</string>
+    <string name="nav_challenges">Челленджи</string>
+
+    <string name="card_monthly_expenses">Расходы за месяц</string>
+    <string name="receipts_count_format">%1$d чека</string>
+    <string name="chart_subtitle">Всего расходов</string>
+
+    <string name="a11y_prev_month">Предыдущий месяц</string>
+    <string name="a11y_next_month">Следующий месяц</string>
+    <string name="a11y_profile">Профиль пользователя</string>
+
+    <string name="state_empty_title">За этот период пока нет чеков</string>
+    <string name="state_empty_subtitle">Добавьте чек или импортируйте покупки</string>
+    <string name="button_add_receipt">Добавить чек</string>
+
+    <string name="state_loading">Синхронизация истории чеков…</string>
+    <string name="state_error_title">Раздел временно недоступен</string>
+    <string name="state_error_subtitle">Не удалось загрузить экран. Попробуйте вернуться на главную.</string>
+    <string name="button_back_home">Вернуться на главную</string>
+
+    <string name="sheet_select_month">Выберите месяц и год</string>
+    <string name="button_apply">Применить</string>
 </resources>
