@@ -64,3 +64,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
+
+composeCompiler {
+    reportsDestination = layout.buildDirectory.dir("compose_compiler_reports")
+    metricsDestination = layout.buildDirectory.dir("compose_compiler_reports")
+}
