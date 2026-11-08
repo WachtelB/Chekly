@@ -7,12 +7,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
@@ -28,65 +28,72 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import com.nordix.chekly.R
 import com.nordix.chekly.ui.theme.CheklyDimens
 
 @Composable
 fun TopHeaderBar(
-    month: String,
-    year: Int,
-    onMonthClick: () -> Unit,
+    periodText: String,
+    onPrevClick: () -> Unit,
+    onNextClick: () -> Unit,
     onProfileClick: () -> Unit,
+    onPeriodClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        color = MaterialTheme.colorScheme.primary,
+        modifier = modifier.fillMaxWidth()
     ) {
-        Surface(
-            modifier = Modifier
-                .heightIn(min = CheklyDimens.MinTouchTarget)
-                .clip(MaterialTheme.shapes.large)
-                .clickable(onClick = onMonthClick)
-                .semantics { role = Role.Button },
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surface
+        Row(
+            modifier = Modifier.padding(
+                horizontal = CheklyDimens.ScreenPadding,
+                vertical = CheklyDimens.SpacingSmall
+            ),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.padding(
-                    horizontal = CheklyDimens.SpacingLarge,
-                    vertical = CheklyDimens.SpacingSmall
-                ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onPrevClick) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowLeft,
+                        contentDescription = stringResource(R.string.a11y_prev_month),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
                 Text(
-                    text = "$month $year",
+                    text = periodText,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable(role = Role.Button, onClick = onPeriodClick)
+                        .padding(
+                            horizontal = CheklyDimens.SpacingSmall,
+                            vertical = CheklyDimens.SpacingXSmall
+                        )
                 )
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = stringResource(R.string.a11y_change_month),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                IconButton(onClick = onNextClick) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowRight,
+                        contentDescription = stringResource(R.string.a11y_next_month),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
-        }
 
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.size(CheklyDimens.AvatarBoxSize)
-        ) {
-            IconButton(onClick = onProfileClick) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = stringResource(R.string.a11y_profile),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
+                modifier = Modifier.size(CheklyDimens.AvatarBoxSize)
+            ) {
+                IconButton(onClick = onProfileClick) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = stringResource(R.string.a11y_profile),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
         }
     }
@@ -95,8 +102,6 @@ fun TopHeaderBar(
 @Composable
 fun MonthlySummaryCard(
     categories: List<CategoryExpense>,
-    receiptCount: Int,
-    monthName: String,
     isLargeFont: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -111,29 +116,12 @@ fun MonthlySummaryCard(
                 .padding(CheklyDimens.CardPadding),
             verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingMedium)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.card_monthly_expenses),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(R.string.receipts_count_format, receiptCount),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
             if (isLargeFont) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    DonutChart(categories = categories, monthName = monthName)
+                    DonutChart(categories = categories)
                 }
                 CategoryLegend(categories = categories)
             } else {
@@ -142,7 +130,7 @@ fun MonthlySummaryCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
                 ) {
-                    DonutChart(categories = categories, monthName = monthName)
+                    DonutChart(categories = categories)
                     CategoryLegend(categories = categories, modifier = Modifier.weight(1f))
                 }
             }

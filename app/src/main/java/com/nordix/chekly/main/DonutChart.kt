@@ -20,7 +20,6 @@ import com.nordix.chekly.ui.theme.CheklyDimens
 @Composable
 fun DonutChart(
     categories: List<CategoryExpense>,
-    monthName: String,
     modifier: Modifier = Modifier
 ) {
     val totalAmount = categories.sumOf { it.amountRub }
@@ -58,7 +57,7 @@ fun DonutChart(
                 textAlign = TextAlign.Center
             )
             Text(
-                text = stringResource(R.string.chart_subtitle_format, monthName),
+                text = stringResource(R.string.chart_subtitle),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
