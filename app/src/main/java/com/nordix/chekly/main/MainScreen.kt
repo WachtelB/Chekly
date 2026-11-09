@@ -1,5 +1,6 @@
 package com.nordix.chekly.main
 
+import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -25,12 +25,9 @@ import com.nordix.chekly.R
 import com.nordix.chekly.ui.theme.CheklyDimens
 
 @Composable
-fun MainScreenContent(
+fun MainScreen(
     state: MainUiState,
     onAction: (MainAction) -> Unit,
-    onSeeAllClick: () -> Unit,
-    onProfileClick: () -> Unit,
-    onAddReceiptClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val fontScale = LocalConfiguration.current.fontScale
@@ -41,18 +38,8 @@ fun MainScreenContent(
             periodText = state.periodText,
             onPrevClick = { onAction(MainAction.PrevMonthClick) },
             onNextClick = { onAction(MainAction.NextMonthClick) },
-            onProfileClick = onProfileClick,
+            onProfileClick = { onAction(MainAction.ProfileClick) },
             onPeriodClick = { onAction(MainAction.OpenMonthPicker) }
-        )
-
-        CheklySearchField(
-            query = state.searchQuery,
-            onQueryChange = { onAction(MainAction.QueryChanged(it)) },
-            placeholderText = "Поиск по магазину или категории...",
-            modifier = Modifier.padding(
-                horizontal = CheklyDimens.ScreenPadding,
-                vertical = CheklyDimens.SpacingSmall
-            )
         )
 
         when (val result = state.result) {
@@ -74,7 +61,7 @@ fun MainScreenContent(
                         EmptyStateView(
                             monthName = state.selectedMonth,
                             year = state.selectedYear,
-                            onAddReceiptClick = onAddReceiptClick
+                            onAddReceiptClick = { onAction(MainAction.AddReceiptClick) }
                         )
                     }
                 }
@@ -83,7 +70,7 @@ fun MainScreenContent(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
-                        top = CheklyDimens.SpacingSmall,
+                        top = CheklyDimens.SpacingLarge,
                         bottom = CheklyDimens.ScreenPadding,
                         start = CheklyDimens.ScreenPadding,
                         end = CheklyDimens.ScreenPadding
@@ -110,7 +97,7 @@ fun MainScreenContent(
                                 modifier = Modifier.semantics { heading() }
                             )
                             TextButton(
-                                onClick = onSeeAllClick,
+                                onClick = { onAction(MainAction.SeeAllClick) },
                                 modifier = Modifier.heightIn(min = CheklyDimens.MinTouchTarget)
                             ) {
                                 Text(stringResource(R.string.button_see_all))

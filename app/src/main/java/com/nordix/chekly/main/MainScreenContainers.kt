@@ -13,12 +13,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nordix.chekly.challenge.Challenge
+import com.nordix.chekly.challenge.ChallengeListScreen
 
 @Composable
 fun MainScreenContainer(
-    onSeeAllClick: () -> Unit,
-    onProfileClick: () -> Unit,
-    onAddReceiptClick: () -> Unit,
+    challenges: List<Challenge>,
+    onShareChallenge: (Challenge) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MainViewModel = viewModel()
 ) {
@@ -34,20 +35,30 @@ fun MainScreenContainer(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        bottomBar = {
+            CheklyBottomBar(
+                currentTab = uiState.currentTab,
+                onTabSelected = { tab -> viewModel.onAction(MainAction.TabSelected(tab)) }
+            )
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            MainScreenContent(
-                state = uiState,
-                onAction = viewModel::onAction,
-                onSeeAllClick = onSeeAllClick,
-                onProfileClick = onProfileClick,
-                onAddReceiptClick = onAddReceiptClick
-            )
+            if (uiState.currentTab == 4) {
+                ChallengeListScreen(
+                    challenges = challenges,
+                    onShare = onShareChallenge
+                )
+            } else {
+                MainScreen(
+                    state = uiState,
+                    onAction = viewModel::onAction
+                )
+            }
 
             if (uiState.isMonthPickerVisible) {
                 MonthPickerBottomSheet(

@@ -47,7 +47,7 @@ fun LoadingStateView(
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Загрузка данных...",
+                text = stringResource(R.string.state_loading),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -58,9 +58,9 @@ fun LoadingStateView(
 
 @Composable
 fun ErrorStateView(
-    message: String,
     onRetryClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    message: String = stringResource(R.string.state_error_subtitle)
 ) {
     Box(
         modifier = modifier
@@ -79,7 +79,7 @@ fun ErrorStateView(
                 tint = MaterialTheme.colorScheme.error
             )
             Text(
-                text = "Произошла ошибка загрузки",
+                text = stringResource(R.string.state_error_title),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
@@ -96,7 +96,7 @@ fun ErrorStateView(
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.heightIn(min = CheklyDimens.MinTouchTarget)
             ) {
-                Text(text = "Вернуться на главную")
+                Text(text = stringResource(R.string.button_back_home))
             }
         }
     }

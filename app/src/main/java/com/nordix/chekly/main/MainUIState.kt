@@ -15,12 +15,14 @@ sealed interface MainResult {
     data object Empty : MainResult
 
     @Immutable
-    data class Error(val message: String) : MainResult
+    data class Error(
+        val message: String
+    ) : MainResult
 }
 
 @Immutable
 data class MainUiState(
-    val searchQuery: String = "",
+    val currentTab: Int = 0,
     val selectedMonthIndex: Int = 9,
     val selectedYear: Int = 2026,
     val isMonthPickerVisible: Boolean = false,
