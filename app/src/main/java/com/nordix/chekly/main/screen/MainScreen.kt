@@ -20,17 +20,21 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import com.nordix.chekly.R
 import com.nordix.chekly.main.MainAction
 import com.nordix.chekly.main.MainResult
 import com.nordix.chekly.main.MainUiState
+import com.nordix.chekly.main.calculateCategoryExpenses
 import com.nordix.chekly.main.components.MonthlySummaryCard
 import com.nordix.chekly.main.components.ReceiptCard
 import com.nordix.chekly.main.components.TopHeaderBar
+import com.nordix.chekly.main.sampleReceipts
 import com.nordix.chekly.main.states.EmptyStateView
 import com.nordix.chekly.main.states.ErrorStateView
 import com.nordix.chekly.main.states.LoadingStateView
 import com.nordix.chekly.ui.theme.CheklyDimens
+import com.nordix.chekly.ui.theme.CheklyTheme
 
 @Composable
 fun MainScreen(
@@ -127,5 +131,70 @@ fun MainScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(name = "MainScreen - Content", showBackground = true)
+@Composable
+private fun MainScreenContentPreview() {
+    CheklyTheme(dynamicColor = false) {
+        MainScreen(
+            state = MainUiState(
+                selectedMonthIndex = 9,
+                selectedYear = 2026,
+                result = MainResult.Content(
+                    receipts = sampleReceipts,
+                    categories = calculateCategoryExpenses(sampleReceipts)
+                )
+            ),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(name = "MainScreen - Empty", showBackground = true)
+@Composable
+private fun MainScreenEmptyPreview() {
+    CheklyTheme(dynamicColor = false) {
+        MainScreen(
+            state = MainUiState(
+                selectedMonthIndex = 10,
+                selectedYear = 2026,
+                result = MainResult.Empty
+            ),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(name = "MainScreen - Error", showBackground = true)
+@Composable
+private fun MainScreenErrorPreview() {
+    CheklyTheme(dynamicColor = false) {
+        MainScreen(
+            state = MainUiState(
+                selectedMonthIndex = 7,
+                selectedYear = 2026,
+                result = MainResult.Error(
+                    message = "Не удалось загрузить чеки за август 2026."
+                )
+            ),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(name = "MainScreen - Loading", showBackground = true)
+@Composable
+private fun MainScreenLoadingPreview() {
+    CheklyTheme(dynamicColor = false) {
+        MainScreen(
+            state = MainUiState(
+                selectedMonthIndex = 8,
+                selectedYear = 2026,
+                result = MainResult.Loading
+            ),
+            onAction = {}
+        )
     }
 }

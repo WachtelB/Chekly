@@ -14,11 +14,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.nordix.chekly.R
+import com.nordix.chekly.challenge.Challenge
 import com.nordix.chekly.challenge.ChallengeAction
 import com.nordix.chekly.challenge.ChallengeResult
 import com.nordix.chekly.challenge.ChallengeUiState
 import com.nordix.chekly.ui.theme.CheklyDimens
+import com.nordix.chekly.ui.theme.CheklyTheme
 
 @Composable
 fun ChallengeScreen(
@@ -91,5 +94,49 @@ fun ChallengeScreen(
         TextButton(onClick = onClose) {
             Text(stringResource(R.string.challenge_close))
         }
+    }
+}
+
+@Preview(name = "ChallengeScreen - Content", showBackground = true)
+@Composable
+private fun ChallengeScreenContentPreview() {
+    CheklyTheme(dynamicColor = false) {
+        ChallengeScreen(
+            state = ChallengeUiState(
+                note = "Попробую готовить дома всю неделю",
+                result = ChallengeResult.Content(
+                    challenge = Challenge(category = "Кафе", limitRub = 2000, days = 14),
+                    accepted = false
+                )
+            ),
+            onAction = {},
+            onClose = {}
+        )
+    }
+}
+
+@Preview(name = "ChallengeScreen - Error", showBackground = true)
+@Composable
+private fun ChallengeScreenErrorPreview() {
+    CheklyTheme(dynamicColor = false) {
+        ChallengeScreen(
+            state = ChallengeUiState(
+                result = ChallengeResult.Error("Некорректная или повреждённая ссылка челленджа")
+            ),
+            onAction = {},
+            onClose = {}
+        )
+    }
+}
+
+@Preview(name = "ChallengeScreen - Empty", showBackground = true)
+@Composable
+private fun ChallengeScreenEmptyPreview() {
+    CheklyTheme(dynamicColor = false) {
+        ChallengeScreen(
+            state = ChallengeUiState(result = ChallengeResult.Empty),
+            onAction = {},
+            onClose = {}
+        )
     }
 }
