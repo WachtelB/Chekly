@@ -1,6 +1,9 @@
 package com.nordix.chekly.main
 
 import androidx.compose.runtime.Immutable
+import com.nordix.chekly.challenge.Challenge
+import com.nordix.chekly.challenge.sampleChallenges
+import com.nordix.chekly.main.components.allMonths
 
 @Immutable
 sealed interface MainResult {
@@ -22,11 +25,12 @@ sealed interface MainResult {
 
 @Immutable
 data class MainUiState(
-    val currentTab: Int = 0,
+    val currentTab: AppTab = AppTab.HOME,
     val selectedMonthIndex: Int = 9,
     val selectedYear: Int = 2026,
     val isMonthPickerVisible: Boolean = false,
     val result: MainResult = MainResult.Loading,
+    val challenges: List<Challenge> = sampleChallenges,
     val userMessage: String? = null
 ) {
     val selectedMonth: String

@@ -1,6 +1,5 @@
-package com.nordix.chekly.main
+package com.nordix.chekly.main.screen
 
-import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,6 +21,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import com.nordix.chekly.R
+import com.nordix.chekly.main.MainAction
+import com.nordix.chekly.main.MainResult
+import com.nordix.chekly.main.MainUiState
+import com.nordix.chekly.main.components.MonthlySummaryCard
+import com.nordix.chekly.main.components.ReceiptCard
+import com.nordix.chekly.main.components.TopHeaderBar
+import com.nordix.chekly.main.states.EmptyStateView
+import com.nordix.chekly.main.states.ErrorStateView
+import com.nordix.chekly.main.states.LoadingStateView
 import com.nordix.chekly.ui.theme.CheklyDimens
 
 @Composable

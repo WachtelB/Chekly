@@ -1,4 +1,4 @@
-package com.nordix.chekly.challenge
+package com.nordix.chekly.challenge.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,8 +14,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.nordix.chekly.R
+import com.nordix.chekly.challenge.ChallengeAction
+import com.nordix.chekly.challenge.ChallengeResult
+import com.nordix.chekly.challenge.ChallengeUiState
+import com.nordix.chekly.ui.theme.CheklyDimens
 
 @Composable
 fun ChallengeScreen(
@@ -27,8 +30,8 @@ fun ChallengeScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(CheklyDimens.SheetHorizontalPadding),
+        verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
     ) {
         when (val result = state.result) {
             ChallengeResult.Loading -> {
@@ -48,7 +51,7 @@ fun ChallengeScreen(
                     color = MaterialTheme.colorScheme.error
                 )
                 Button(onClick = { onAction(ChallengeAction.Retry) }) {
-                    Text("Повторить")
+                    Text(stringResource(R.string.button_retry))
                 }
             }
             is ChallengeResult.Content -> {
@@ -69,7 +72,7 @@ fun ChallengeScreen(
                     value = state.note,
                     onValueChange = { onAction(ChallengeAction.NoteChanged(it)) },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Личная цель / заметка к челленджу") },
+                    label = { Text(stringResource(R.string.challenge_note_label)) },
                     singleLine = true
                 )
                 if (result.accepted) {

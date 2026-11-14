@@ -1,7 +1,7 @@
 package com.nordix.chekly.main
 
 sealed interface MainAction {
-    data class TabSelected(val tabIndex: Int) : MainAction
+    data class TabSelected(val tab: AppTab) : MainAction
     data object PrevMonthClick : MainAction
     data object NextMonthClick : MainAction
     data object OpenMonthPicker : MainAction

@@ -1,4 +1,4 @@
-package com.nordix.chekly.main
+package com.nordix.chekly.main.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,12 +22,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import com.nordix.chekly.R
+import com.nordix.chekly.main.AppTab
 import com.nordix.chekly.ui.theme.CheklyDimens
 
 @Composable
 fun CheklyBottomBar(
-    currentTab: Int,
-    onTabSelected: (Int) -> Unit,
+    currentTab: AppTab,
+    onTabSelected: (AppTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val fontScale = LocalConfiguration.current.fontScale
@@ -44,8 +45,8 @@ fun CheklyBottomBar(
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         NavigationBarItem(
-            selected = currentTab == 0,
-            onClick = { onTabSelected(0) },
+            selected = currentTab == AppTab.HOME,
+            onClick = { onTabSelected(AppTab.HOME) },
             icon = {
                 Icon(
                     imageVector = Icons.Default.Home,
@@ -57,8 +58,8 @@ fun CheklyBottomBar(
             } else null
         )
         NavigationBarItem(
-            selected = currentTab == 1,
-            onClick = { onTabSelected(1) },
+            selected = currentTab == AppTab.HISTORY,
+            onClick = { onTabSelected(AppTab.HISTORY) },
             icon = {
                 Icon(
                     imageVector = Icons.Default.Menu,
@@ -70,8 +71,8 @@ fun CheklyBottomBar(
             } else null
         )
         NavigationBarItem(
-            selected = currentTab == 2,
-            onClick = { onTabSelected(2) },
+            selected = currentTab == AppTab.ADD,
+            onClick = { onTabSelected(AppTab.ADD) },
             icon = {
                 Box(
                     modifier = Modifier
@@ -92,8 +93,8 @@ fun CheklyBottomBar(
             } else null
         )
         NavigationBarItem(
-            selected = currentTab == 3,
-            onClick = { onTabSelected(3) },
+            selected = currentTab == AppTab.BUDGET,
+            onClick = { onTabSelected(AppTab.BUDGET) },
             icon = {
                 Icon(
                     imageVector = Icons.Default.DateRange,
@@ -105,8 +106,8 @@ fun CheklyBottomBar(
             } else null
         )
         NavigationBarItem(
-            selected = currentTab == 4,
-            onClick = { onTabSelected(4) },
+            selected = currentTab == AppTab.CHALLENGES,
+            onClick = { onTabSelected(AppTab.CHALLENGES) },
             icon = {
                 Icon(
                     imageVector = Icons.Default.Star,

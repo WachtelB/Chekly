@@ -2,12 +2,13 @@ package com.nordix.chekly.main
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import com.nordix.chekly.main.components.allMonths
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-private const val KEY_TAB = "saved_tab_index"
+private const val KEY_TAB = "saved_tab_name"
 private const val KEY_MONTH_INDEX = "saved_month_index"
 private const val KEY_YEAR = "saved_year"
 
@@ -15,7 +16,9 @@ class MainViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val initialTab = savedStateHandle.get<Int>(KEY_TAB) ?: 0
+    private val initialTab = savedStateHandle.get<String>(KEY_TAB)
+        ?.let { runCatching { AppTab.valueOf(it) }.getOrNull() }
+        ?: AppTab.HOME
     private val initialMonth = savedStateHandle.get<Int>(KEY_MONTH_INDEX) ?: 9
     private val initialYear = savedStateHandle.get<Int>(KEY_YEAR) ?: 2026
 
@@ -24,17 +27,17 @@ class MainViewModel(
             currentTab = initialTab,
             selectedMonthIndex = initialMonth,
             selectedYear = initialYear,
-            result = evaluateResult(initialTab, initialMonth, initialYear)
+            result = evaluateResult(initialMonth, initialYear)
         )
     )
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     fun onAction(action: MainAction) {
         when (action) {
-            is MainAction.TabSelected -> selectTab(action.tabIndex)
-            MainAction.SeeAllClick -> selectTab(1)
-            MainAction.AddReceiptClick -> selectTab(2)
-            MainAction.ProfileClick -> selectTab(4)
+            is MainAction.TabSelected -> selectTab(action.tab)
+            MainAction.SeeAllClick -> selectTab(AppTab.HISTORY)
+            MainAction.AddReceiptClick -> selectTab(AppTab.ADD)
+            MainAction.ProfileClick -> selectTab(AppTab.CHALLENGES)
 
             MainAction.PrevMonthClick -> shiftMonth(delta = -1)
             MainAction.NextMonthClick -> shiftMonth(delta = 1)
@@ -60,12 +63,16 @@ class MainViewModel(
                 }
             }
             MainAction.Retry -> {
-                savedStateHandle[KEY_TAB] = 0
+                savedStateHandle[KEY_TAB] = AppTab.HOME.name
+                savedStateHandle[KEY_MONTH_INDEX] = 9
+                savedStateHandle[KEY_YEAR] = 2026
                 _uiState.update { current ->
                     current.copy(
-                        currentTab = 0,
-                        result = evaluateResult(0, current.selectedMonthIndex, current.selectedYear),
-                        userMessage = "Возврат на главный экран"
+                        currentTab = AppTab.HOME,
+                        selectedMonthIndex = 9,
+                        selectedYear = 2026,
+                        result = evaluateResult(monthIndex = 9, year = 2026),
+                        userMessage = "Данные успешно обновлены"
                     )
                 }
             }
@@ -75,28 +82,18 @@ class MainViewModel(
         }
     }
 
-    private fun selectTab(tabIndex: Int) {
-        savedStateHandle[KEY_TAB] = tabIndex
+    private fun selectTab(tab: AppTab) {
+        savedStateHandle[KEY_TAB] = tab.name
         _uiState.update { current ->
-            current.copy(
-                currentTab = tabIndex,
-                result = evaluateResult(tabIndex, current.selectedMonthIndex, current.selectedYear)
-            )
+            current.copy(currentTab = tab)
         }
     }
 
     private fun shiftMonth(delta: Int) {
         val current = _uiState.value
-        var newMonth = current.selectedMonthIndex + delta
-        var newYear = current.selectedYear
-
-        if (newMonth < 0) {
-            newMonth = allMonths.lastIndex
-            newYear--
-        } else if (newMonth > allMonths.lastIndex) {
-            newMonth = 0
-            newYear++
-        }
+        val totalMonths = current.selectedYear * 12 + current.selectedMonthIndex + delta
+        val newYear = totalMonths / 12
+        val newMonth = totalMonths.mod(12)
         updatePeriod(monthIndex = newMonth, year = newYear)
     }
 
@@ -113,22 +110,18 @@ class MainViewModel(
                 selectedMonthIndex = monthIndex,
                 selectedYear = year,
                 isMonthPickerVisible = false,
-                result = evaluateResult(current.currentTab, monthIndex, year),
+                result = evaluateResult(monthIndex, year),
                 userMessage = userMessage ?: current.userMessage
             )
         }
     }
 
-    private fun evaluateResult(tabIndex: Int, monthIndex: Int, year: Int): MainResult {
+    private fun evaluateResult(monthIndex: Int, year: Int): MainResult {
         return when {
-            tabIndex == 1 || (monthIndex == 8 && year == 2026) -> {
-                MainResult.Loading
-            }
-            tabIndex in 2..3 -> {
-                MainResult.Error(
-                    message = "Не удалось загрузить экран. Попробуйте вернуться на главную."
-                )
-            }
+            monthIndex == 8 && year == 2026 -> MainResult.Loading
+            monthIndex == 7 && year == 2026 -> MainResult.Error(
+                message = "Не удалось загрузить чеки за август 2026."
+            )
             monthIndex == 9 && year == 2026 -> {
                 val receipts = sampleReceipts
                 val categories = calculateCategoryExpenses(receipts)

@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import com.nordix.chekly.LoggedActivity
+import com.nordix.chekly.challenge.screen.ChallengeScreenContainer
 import com.nordix.chekly.ui.theme.CheklyTheme
 
 class ChallengeActivity : LoggedActivity() {

@@ -1,4 +1,4 @@
-package com.nordix.chekly.main
+package com.nordix.chekly.main.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,11 +14,17 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nordix.chekly.challenge.Challenge
-import com.nordix.chekly.challenge.ChallengeListScreen
+import com.nordix.chekly.challenge.screen.ChallengeListScreen
+import com.nordix.chekly.main.AppTab
+import com.nordix.chekly.main.MainAction
+import com.nordix.chekly.main.MainViewModel
+import com.nordix.chekly.main.components.CheklyBottomBar
+import com.nordix.chekly.main.components.MonthPickerBottomSheet
+import com.nordix.chekly.main.states.ErrorStateView
+import com.nordix.chekly.main.states.LoadingStateView
 
 @Composable
 fun MainScreenContainer(
-    challenges: List<Challenge>,
     onShareChallenge: (Challenge) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MainViewModel = viewModel()
@@ -48,16 +54,27 @@ fun MainScreenContainer(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (uiState.currentTab == 4) {
-                ChallengeListScreen(
-                    challenges = challenges,
-                    onShare = onShareChallenge
-                )
-            } else {
-                MainScreen(
-                    state = uiState,
-                    onAction = viewModel::onAction
-                )
+            when (uiState.currentTab) {
+                AppTab.HOME -> {
+                    MainScreen(
+                        state = uiState,
+                        onAction = viewModel::onAction
+                    )
+                }
+                AppTab.HISTORY -> {
+                    LoadingStateView()
+                }
+                AppTab.ADD, AppTab.BUDGET -> {
+                    ErrorStateView(
+                        onRetryClick = { viewModel.onAction(MainAction.Retry) }
+                    )
+                }
+                AppTab.CHALLENGES -> {
+                    ChallengeListScreen(
+                        challenges = uiState.challenges,
+                        onShare = onShareChallenge
+                    )
+                }
             }
 
             if (uiState.isMonthPickerVisible) {

@@ -52,6 +52,7 @@ fun CheklyTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = CheklyTypography,
         shapes = CheklyShapes,
         content = content
     )
