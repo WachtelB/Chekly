@@ -29,12 +29,12 @@ import com.nordix.chekly.main.calculateCategoryExpenses
 import com.nordix.chekly.main.components.MonthlySummaryCard
 import com.nordix.chekly.main.components.ReceiptCard
 import com.nordix.chekly.main.components.TopHeaderBar
-import com.nordix.chekly.main.sampleReceipts
 import com.nordix.chekly.main.states.EmptyStateView
 import com.nordix.chekly.main.states.ErrorStateView
 import com.nordix.chekly.main.states.LoadingStateView
 import com.nordix.chekly.ui.theme.CheklyDimens
 import com.nordix.chekly.ui.theme.CheklyTheme
+import com.nordix.chekly.data.sampleReceipts
 
 @Composable
 fun MainScreen(

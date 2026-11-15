@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.nordix.chekly.challenge.Challenge
 import com.nordix.chekly.challenge.sampleChallenges
 import com.nordix.chekly.main.components.allMonths
+import com.nordix.chekly.data.Receipt
 
 @Immutable
 sealed interface MainResult {

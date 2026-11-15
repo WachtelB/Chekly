@@ -22,7 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import com.nordix.chekly.R
-import com.nordix.chekly.main.Receipt
+import com.nordix.chekly.data.Receipt
 import com.nordix.chekly.ui.theme.CheklyDimens
 
 @Composable

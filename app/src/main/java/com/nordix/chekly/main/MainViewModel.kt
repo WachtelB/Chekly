@@ -2,11 +2,14 @@ package com.nordix.chekly.main
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.nordix.chekly.data.ReceiptRepository
 import com.nordix.chekly.main.components.allMonths
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 private const val KEY_TAB = "saved_tab_name"
 private const val KEY_MONTH_INDEX = "saved_month_index"
@@ -31,6 +34,18 @@ class MainViewModel(
         )
     )
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            ReceiptRepository.receipts.collect {
+                _uiState.update { current ->
+                    current.copy(
+                        result = evaluateResult(current.selectedMonthIndex, current.selectedYear)
+                    )
+                }
+            }
+        }
+    }
 
     fun onAction(action: MainAction) {
         when (action) {
@@ -58,8 +73,10 @@ class MainViewModel(
                 )
             }
             is MainAction.ReceiptClicked -> {
+                val receipt = ReceiptRepository.getReceiptById(action.receiptId)
+                val shopTitle = receipt?.shopName ?: "ID ${action.receiptId}"
                 _uiState.update {
-                    it.copy(userMessage = "Чек из магазина «${action.shopName}»")
+                    it.copy(userMessage = "Чек из магазина «$shopTitle»")
                 }
             }
             MainAction.Retry -> {
@@ -123,7 +140,7 @@ class MainViewModel(
                 message = "Не удалось загрузить чеки за август 2026."
             )
             monthIndex == 9 && year == 2026 -> {
-                val receipts = sampleReceipts
+                val receipts = ReceiptRepository.receipts.value
                 val categories = calculateCategoryExpenses(receipts)
                 MainResult.Content(receipts = receipts, categories = categories)
             }

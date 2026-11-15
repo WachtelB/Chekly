@@ -2,16 +2,8 @@ package com.nordix.chekly.main
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import com.nordix.chekly.data.Receipt
 import com.nordix.chekly.ui.theme.CategoryColors
-
-@Immutable
-data class Receipt(
-    val id: String,
-    val shopName: String,
-    val category: String,
-    val amountRub: Long,
-    val dateText: String
-)
 
 @Immutable
 data class CategoryExpense(
@@ -40,13 +32,3 @@ fun calculateCategoryExpenses(receipts: List<Receipt>): List<CategoryExpense> {
         }
         .sortedByDescending { it.amountRub }
 }
-
-val sampleReceipts = listOf(
-    Receipt("1", "Пятёрочка", "Продукты", 21200, "25 окт."),
-    Receipt("2", "Яндекс Заправки", "Транспорт", 10500, "24 окт."),
-    Receipt("3", "Вкусно и точка", "Кафе", 8000, "24 окт."),
-    Receipt("4", "Киномакс", "Развлечения", 5500, "22 окт."),
-    Receipt("5", "Киномакс", "Развлечения", 5500, "22 окт."),
-    Receipt("6", "Киномакс", "Развлечения", 5500, "22 окт.")
-
-)

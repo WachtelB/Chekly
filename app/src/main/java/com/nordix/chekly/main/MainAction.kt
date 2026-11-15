@@ -7,7 +7,7 @@ sealed interface MainAction {
     data object OpenMonthPicker : MainAction
     data object DismissMonthPicker : MainAction
     data class SelectPeriod(val monthName: String, val year: Int) : MainAction
-    data class ReceiptClicked(val shopName: String) : MainAction
+    data class ReceiptClicked(val receiptId: String) : MainAction
     data object SeeAllClick : MainAction
     data object AddReceiptClick : MainAction
     data object ProfileClick : MainAction
