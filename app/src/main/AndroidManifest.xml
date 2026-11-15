@@ -17,8 +17,8 @@
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+                <data android:scheme="chekly" android:host="receipt" />
             </intent-filter>
         </activity>
         <activity

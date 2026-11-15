@@ -1,5 +1,4 @@
-
-package com.nordix.chekly.main
+package com.nordix.chekly.main.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -15,6 +14,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.nordix.chekly.R
+import com.nordix.chekly.main.CategoryExpense
 import com.nordix.chekly.ui.theme.CheklyDimens
 
 @Composable

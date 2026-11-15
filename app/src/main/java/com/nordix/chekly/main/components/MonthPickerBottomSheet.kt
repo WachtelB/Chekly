@@ -1,4 +1,4 @@
-package com.nordix.chekly.main
+package com.nordix.chekly.main.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
