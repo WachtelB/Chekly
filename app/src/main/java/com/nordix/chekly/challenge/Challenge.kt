@@ -1,7 +1,15 @@
 package com.nordix.chekly.challenge
 
+import androidx.compose.runtime.Immutable
 import java.io.Serializable
 
+val sampleChallenges = listOf(
+    Challenge(category = "Еда", limitRub = 5000, days = 7),
+    Challenge(category = "Кафе", limitRub = 2000, days = 14),
+    Challenge(category = "Транспорт", limitRub = 3000, days = 30),
+)
+
+@Immutable
 data class Challenge(
     val category: String,
     val limitRub: Long,

@@ -1,0 +1,200 @@
+package com.nordix.chekly.main.screen
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
+import com.nordix.chekly.R
+import com.nordix.chekly.main.MainAction
+import com.nordix.chekly.main.MainResult
+import com.nordix.chekly.main.MainUiState
+import com.nordix.chekly.main.calculateCategoryExpenses
+import com.nordix.chekly.main.components.MonthlySummaryCard
+import com.nordix.chekly.main.components.ReceiptCard
+import com.nordix.chekly.main.components.TopHeaderBar
+import com.nordix.chekly.main.sampleReceipts
+import com.nordix.chekly.main.states.EmptyStateView
+import com.nordix.chekly.main.states.ErrorStateView
+import com.nordix.chekly.main.states.LoadingStateView
+import com.nordix.chekly.ui.theme.CheklyDimens
+import com.nordix.chekly.ui.theme.CheklyTheme
+
+@Composable
+fun MainScreen(
+    state: MainUiState,
+    onAction: (MainAction) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val fontScale = LocalConfiguration.current.fontScale
+    val isLargeFont = fontScale >= 1.5f
+
+    Column(modifier = modifier.fillMaxSize()) {
+        TopHeaderBar(
+            periodText = state.periodText,
+            onPrevClick = { onAction(MainAction.PrevMonthClick) },
+            onNextClick = { onAction(MainAction.NextMonthClick) },
+            onProfileClick = { onAction(MainAction.ProfileClick) },
+            onPeriodClick = { onAction(MainAction.OpenMonthPicker) }
+        )
+
+        when (val result = state.result) {
+            MainResult.Loading -> {
+                LoadingStateView()
+            }
+            is MainResult.Error -> {
+                ErrorStateView(
+                    message = result.message,
+                    onRetryClick = { onAction(MainAction.Retry) }
+                )
+            }
+            MainResult.Empty -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(CheklyDimens.ScreenPadding)
+                ) {
+                    item {
+                        EmptyStateView(
+                            monthName = state.selectedMonth,
+                            year = state.selectedYear,
+                            onAddReceiptClick = { onAction(MainAction.AddReceiptClick) }
+                        )
+                    }
+                }
+            }
+            is MainResult.Content -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        top = CheklyDimens.SpacingLarge,
+                        bottom = CheklyDimens.ScreenPadding,
+                        start = CheklyDimens.ScreenPadding,
+                        end = CheklyDimens.ScreenPadding
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingLarge)
+                ) {
+                    item {
+                        MonthlySummaryCard(
+                            categories = result.categories,
+                            isLargeFont = isLargeFont
+                        )
+                    }
+
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.section_recent_receipts),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.semantics { heading() }
+                            )
+                            TextButton(
+                                onClick = { onAction(MainAction.SeeAllClick) },
+                                modifier = Modifier.heightIn(min = CheklyDimens.MinTouchTarget)
+                            ) {
+                                Text(stringResource(R.string.button_see_all))
+                            }
+                        }
+                    }
+
+                    items(
+                        items = result.receipts,
+                        key = { it.id }
+                    ) { receipt ->
+                        ReceiptCard(
+                            receipt = receipt,
+                            modifier = Modifier.clickable {
+                                onAction(MainAction.ReceiptClicked(receipt.shopName))
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(name = "MainScreen - Content", showBackground = true)
+@Composable
+private fun MainScreenContentPreview() {
+    CheklyTheme(dynamicColor = false) {
+        MainScreen(
+            state = MainUiState(
+                selectedMonthIndex = 9,
+                selectedYear = 2026,
+                result = MainResult.Content(
+                    receipts = sampleReceipts,
+                    categories = calculateCategoryExpenses(sampleReceipts)
+                )
+            ),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(name = "MainScreen - Empty", showBackground = true)
+@Composable
+private fun MainScreenEmptyPreview() {
+    CheklyTheme(dynamicColor = false) {
+        MainScreen(
+            state = MainUiState(
+                selectedMonthIndex = 10,
+                selectedYear = 2026,
+                result = MainResult.Empty
+            ),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(name = "MainScreen - Error", showBackground = true)
+@Composable
+private fun MainScreenErrorPreview() {
+    CheklyTheme(dynamicColor = false) {
+        MainScreen(
+            state = MainUiState(
+                selectedMonthIndex = 7,
+                selectedYear = 2026,
+                result = MainResult.Error(
+                    message = "Не удалось загрузить чеки за август 2026."
+                )
+            ),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(name = "MainScreen - Loading", showBackground = true)
+@Composable
+private fun MainScreenLoadingPreview() {
+    CheklyTheme(dynamicColor = false) {
+        MainScreen(
+            state = MainUiState(
+                selectedMonthIndex = 8,
+                selectedYear = 2026,
+                result = MainResult.Loading
+            ),
+            onAction = {}
+        )
+    }
+}
