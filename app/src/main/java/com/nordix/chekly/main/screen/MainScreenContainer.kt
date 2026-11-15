@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -67,11 +68,9 @@ fun MainScreenContainer(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
 
-    // Вызываем без <NavKey>, как на слайдах 16 и 57
     val homeBackStack = rememberNavBackStack(HomeDashboardKey)
     val historyBackStack = rememberNavBackStack(HistoryListKey)
 
-    // Используем V2 и isWidthAtLeastBreakpoint со слайда 51
     val adaptiveInfo = currentWindowAdaptiveInfoV2()
     val isExpandedWindow = adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(
         WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND
@@ -103,31 +102,31 @@ fun MainScreenContainer(
                 selected = uiState.currentTab == AppTab.HOME,
                 onClick = { viewModel.onAction(MainAction.TabSelected(AppTab.HOME)) },
                 icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                label = { Text("Главная") }
+                label = { Text("Главная", maxLines = 1, overflow = TextOverflow.Ellipsis) }
             )
             item(
                 selected = uiState.currentTab == AppTab.HISTORY,
                 onClick = { viewModel.onAction(MainAction.TabSelected(AppTab.HISTORY)) },
                 icon = { Icon(Icons.Default.Menu, contentDescription = null) },
-                label = { Text("История") }
+                label = { Text("История", maxLines = 1, overflow = TextOverflow.Ellipsis) }
             )
             item(
                 selected = uiState.currentTab == AppTab.ADD,
                 onClick = { viewModel.onAction(MainAction.TabSelected(AppTab.ADD)) },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                label = { Text("Добавить") }
+                label = { Text("Добавить", maxLines = 1, overflow = TextOverflow.Ellipsis) }
             )
             item(
                 selected = uiState.currentTab == AppTab.BUDGET,
                 onClick = { viewModel.onAction(MainAction.TabSelected(AppTab.BUDGET)) },
                 icon = { Icon(Icons.Default.DateRange, contentDescription = null) },
-                label = { Text("Бюджет") }
+                label = { Text("Бюджет", maxLines = 1, overflow = TextOverflow.Ellipsis) }
             )
             item(
                 selected = uiState.currentTab == AppTab.CHALLENGES,
                 onClick = { viewModel.onAction(MainAction.TabSelected(AppTab.CHALLENGES)) },
                 icon = { Icon(Icons.Default.Star, contentDescription = null) },
-                label = { Text("Челленджи") }
+                label = { Text("Челленджи", maxLines = 1, overflow = TextOverflow.Ellipsis) }
             )
         }
     ) {

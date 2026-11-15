@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 @Immutable
 @Serializable
 data class SelectedPeriod(
-    val monthIndex: Int = 9, // Октябрь
+    val monthIndex: Int = 9,
     val year: Int = 2026
 )
 
@@ -143,7 +143,7 @@ val sampleReceipts = listOf(
         shopAddress = "Москва, пр-т Андропова, 22",
         category = "Продукты",
         dateText = "15 нояб. 2026, 19:10",
-        monthIndex = 10, // Ноябрь 2026
+        monthIndex = 10,
         year = 2026,
         items = listOf(
             ReceiptItem("5_1", "Форель слабосолёная 200г", 1, 590),

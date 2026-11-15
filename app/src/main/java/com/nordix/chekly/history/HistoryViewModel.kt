@@ -8,9 +8,17 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import java.util.Locale
 
 private const val KEY_QUERY = "history_search_query"
 private const val KEY_CATEGORY = "history_selected_category"
+private val russianLocale = Locale.forLanguageTag("ru-RU")
+
+private fun String.normalizeForSearch(): String {
+    return this.trim()
+        .lowercase(russianLocale)
+        .replace('ё', 'е')
+}
 
 class HistoryViewModel(
     private val savedStateHandle: SavedStateHandle
@@ -25,9 +33,10 @@ class HistoryViewModel(
         queryFlow,
         categoryFlow
     ) { receipts, period, query, category ->
-        val cleanQuery = query.trim()
+        val normalizedQuery = query.normalizeForSearch()
+
         val result = when {
-            cleanQuery.equals("error", ignoreCase = true) -> {
+            normalizedQuery == "error" || normalizedQuery == "ошибка" -> {
                 HistoryListResult.Error("Ошибка фильтрации чеков. Проверьте запрос.")
             }
             period.monthIndex == 8 && period.year == 2026 -> {
@@ -41,9 +50,13 @@ class HistoryViewModel(
                     val matchesPeriod =
                         receipt.monthIndex == period.monthIndex && receipt.year == period.year
                     val matchesCategory = category == null || receipt.category == category
-                    val matchesQuery = cleanQuery.isEmpty() ||
-                            receipt.shopName.contains(cleanQuery, ignoreCase = true) ||
-                            receipt.items.any { it.name.contains(cleanQuery, ignoreCase = true) }
+                    val matchesQuery = normalizedQuery.isEmpty() ||
+                            receipt.shopName.normalizeForSearch().contains(normalizedQuery) ||
+                            receipt.category.normalizeForSearch().contains(normalizedQuery) ||
+                            receipt.shopAddress.normalizeForSearch().contains(normalizedQuery) ||
+                            receipt.items.any { item ->
+                                item.name.normalizeForSearch().contains(normalizedQuery)
+                            }
                     matchesPeriod && matchesCategory && matchesQuery
                 }
                 if (filtered.isEmpty()) HistoryListResult.Empty
