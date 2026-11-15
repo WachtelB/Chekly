@@ -13,18 +13,21 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.nordix.chekly.data.sampleReceipts
+import com.nordix.chekly.main.AppTab
+import com.nordix.chekly.main.MainAction
+import com.nordix.chekly.main.MainResult
+import com.nordix.chekly.main.MainUiState
+import com.nordix.chekly.main.calculateCategoryExpenses
 import com.nordix.chekly.main.components.CheklyBottomBar
-import com.nordix.chekly.main.states.EmptyStateView
-import com.nordix.chekly.main.states.ErrorStateView
-import com.nordix.chekly.main.states.LoadingStateView
-import com.nordix.chekly.main.screen.MainScreen
 import com.nordix.chekly.main.components.MonthYearSpinnerContent
 import com.nordix.chekly.main.components.MonthlySummaryCard
 import com.nordix.chekly.main.components.ReceiptCard
 import com.nordix.chekly.main.components.TopHeaderBar
-import com.nordix.chekly.main.components.allMonths
-import com.nordix.chekly.main.calculateCategoryExpenses
-import com.nordix.chekly.main.sampleReceipts
+import com.nordix.chekly.main.screen.MainScreen
+import com.nordix.chekly.main.states.EmptyStateView
+import com.nordix.chekly.main.states.ErrorStateView
+import com.nordix.chekly.main.states.LoadingStateView
 import com.nordix.chekly.ui.theme.CheklyTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -40,7 +43,7 @@ class CheklyUITest {
 
     @Test
     fun cheklyBottomBar_normalFontScale_showsAllLabelsAndHandlesClicks() {
-        var selectedTab = 0
+        var selectedTab = AppTab.HOME
         composeTestRule.setContent {
             val config = Configuration(LocalConfiguration.current).apply { fontScale = 1.0f }
             CompositionLocalProvider(LocalConfiguration provides config) {
@@ -55,7 +58,7 @@ class CheklyUITest {
 
         composeTestRule.onNodeWithText("Главная").assertIsDisplayed().assertIsSelected()
         composeTestRule.onNodeWithText("История").assertIsDisplayed().performClick()
-        assertEquals(1, selectedTab)
+        assertEquals(AppTab.HISTORY, selectedTab)
 
         composeTestRule.onNodeWithText("Добавить").assertIsDisplayed()
         composeTestRule.onNodeWithText("Бюджет").assertIsDisplayed()
@@ -69,7 +72,7 @@ class CheklyUITest {
             CompositionLocalProvider(LocalConfiguration provides config) {
                 CheklyTheme {
                     CheklyBottomBar(
-                        currentTab = 0,
+                        currentTab = AppTab.HOME,
                         onTabSelected = {}
                     )
                 }
@@ -119,7 +122,10 @@ class CheklyUITest {
 
     @Test
     fun donutChart_and_categoryLegend_and_monthlySummaryCard_renderWithoutMonthlyTitle() {
-        val categories = calculateCategoryExpenses(sampleReceipts)
+        val octoberReceipts = sampleReceipts.filter { it.monthIndex == 9 && it.year == 2026 }
+        val categories = calculateCategoryExpenses(octoberReceipts)
+        val expectedTotalFormatted =
+            "%,d".format(categories.sumOf { it.amountRub }).replace(',', ' ') + " ₽"
 
         composeTestRule.setContent {
             CheklyTheme {
@@ -132,7 +138,7 @@ class CheklyUITest {
         composeTestRule.onNodeWithText("Расходы за месяц").assertDoesNotExist()
         composeTestRule.onNodeWithText("6 чека").assertDoesNotExist()
 
-        composeTestRule.onNodeWithText("56 200 ₽").assertIsDisplayed()
+        composeTestRule.onNodeWithText(expectedTotalFormatted).assertIsDisplayed()
         composeTestRule.onNodeWithText("Всего расходов").assertIsDisplayed()
         composeTestRule.onNodeWithText("Продукты").assertIsDisplayed()
         composeTestRule.onNodeWithText("Транспорт").assertIsDisplayed()
@@ -148,9 +154,9 @@ class CheklyUITest {
             }
         }
 
-        composeTestRule.onNodeWithText("Пятёрочка").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Продукты").assertIsDisplayed()
-        composeTestRule.onNodeWithText("25 окт.").assertIsDisplayed()
+        composeTestRule.onNodeWithText(receipt.shopName).assertIsDisplayed()
+        composeTestRule.onNodeWithText(receipt.category).assertIsDisplayed()
+        composeTestRule.onNodeWithText(receipt.dateText).assertIsDisplayed()
     }
 
     @Test
@@ -165,7 +171,7 @@ class CheklyUITest {
                     0 -> LoadingStateView()
                     1 -> ErrorStateView(onRetryClick = { retryClicked = true })
                     else -> EmptyStateView(
-                        monthName = "Ноябрь 2026",
+                        monthName = "Ноябрь",
                         year = 2026,
                         onAddReceiptClick = { addReceiptClicked = true }
                     )
@@ -173,11 +179,11 @@ class CheklyUITest {
             }
         }
 
-        composeTestRule.onNodeWithText("Загрузка данных...").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Синхронизация истории чеков…").assertIsDisplayed()
 
         stateMode = 1
         composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText("Произошла ошибка загрузки").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Раздел временно недоступен").assertIsDisplayed()
         composeTestRule.onNodeWithText("Вернуться на главную").performClick()
         assertTrue(retryClicked)
 
@@ -189,7 +195,7 @@ class CheklyUITest {
 
     @Test
     fun monthYearSpinnerContent_allowsSelectingMonthAndYearAndApplying() {
-        var monthIndex by mutableIntStateOf(9) // Октябрь
+        var monthIndex by mutableIntStateOf(9)
         var year by mutableIntStateOf(2026)
         var applied = false
 
@@ -223,33 +229,37 @@ class CheklyUITest {
     @Test
     fun mainScreen_recompositionStability_acrossMultipleMonthsAndYears() {
         val categories = calculateCategoryExpenses(sampleReceipts)
-        var monthIndex by mutableIntStateOf(0) // Январь
+        var monthIndex by mutableIntStateOf(0)
         var year by mutableIntStateOf(2026)
 
         composeTestRule.setContent {
             CheklyTheme {
-                val periodText = "${allMonths[monthIndex]} $year"
                 MainScreen(
-                    receipts = sampleReceipts,
-                    categories = categories,
-                    periodText = periodText,
-                    isLoading = false,
-                    isError = false,
-                    onPrevMonthClick = {
-                        if (monthIndex > 0) monthIndex-- else {
-                            monthIndex = 11
-                            year--
+                    state = MainUiState(
+                        selectedMonthIndex = monthIndex,
+                        selectedYear = year,
+                        result = MainResult.Content(
+                            receipts = sampleReceipts,
+                            categories = categories
+                        )
+                    ),
+                    onAction = { action ->
+                        when (action) {
+                            MainAction.PrevMonthClick -> {
+                                if (monthIndex > 0) monthIndex-- else {
+                                    monthIndex = 11
+                                    year--
+                                }
+                            }
+                            MainAction.NextMonthClick -> {
+                                if (monthIndex < 11) monthIndex++ else {
+                                    monthIndex = 0
+                                    year++
+                                }
+                            }
+                            else -> {}
                         }
-                    },
-                    onNextMonthClick = {
-                        if (monthIndex < 11) monthIndex++ else {
-                            monthIndex = 0
-                            year++
-                        }
-                    },
-                    onSeeAllClick = {},
-                    onProfileClick = {},
-                    onAddReceiptClick = {}
+                    }
                 )
             }
         }
