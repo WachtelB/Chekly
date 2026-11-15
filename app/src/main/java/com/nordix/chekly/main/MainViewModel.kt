@@ -36,6 +36,7 @@ class MainViewModel(
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     init {
+        ReceiptRepository.setPeriod(initialMonth, initialYear)
         viewModelScope.launch {
             ReceiptRepository.receipts.collect {
                 _uiState.update { current ->
@@ -121,6 +122,7 @@ class MainViewModel(
     ) {
         savedStateHandle[KEY_MONTH_INDEX] = monthIndex
         savedStateHandle[KEY_YEAR] = year
+        ReceiptRepository.setPeriod(monthIndex, year)
 
         _uiState.update { current ->
             current.copy(
@@ -139,12 +141,17 @@ class MainViewModel(
             monthIndex == 7 && year == 2026 -> MainResult.Error(
                 message = "Не удалось загрузить чеки за август 2026."
             )
-            monthIndex == 9 && year == 2026 -> {
-                val receipts = ReceiptRepository.receipts.value
-                val categories = calculateCategoryExpenses(receipts)
-                MainResult.Content(receipts = receipts, categories = categories)
+            else -> {
+                val monthReceipts = ReceiptRepository.receipts.value.filter {
+                    it.monthIndex == monthIndex && it.year == year
+                }
+                if (monthReceipts.isEmpty()) {
+                    MainResult.Empty
+                } else {
+                    val categories = calculateCategoryExpenses(monthReceipts)
+                    MainResult.Content(receipts = monthReceipts, categories = categories)
+                }
             }
-            else -> MainResult.Empty
         }
     }
 }

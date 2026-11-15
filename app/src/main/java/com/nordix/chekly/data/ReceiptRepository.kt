@@ -5,8 +5,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.Serializable
 
 @Immutable
+@Serializable
+data class SelectedPeriod(
+    val monthIndex: Int = 9, // Октябрь
+    val year: Int = 2026
+)
+
+@Immutable
+@Serializable
 data class ReceiptItem(
     val id: String,
     val name: String,
@@ -17,6 +26,7 @@ data class ReceiptItem(
 }
 
 @Immutable
+@Serializable
 data class Receipt(
     val id: String,
     val shopName: String,
@@ -34,6 +44,13 @@ data class Receipt(
 object ReceiptRepository {
     private val _receipts = MutableStateFlow(sampleReceipts)
     val receipts: StateFlow<List<Receipt>> = _receipts.asStateFlow()
+
+    private val _selectedPeriod = MutableStateFlow(SelectedPeriod())
+    val selectedPeriod: StateFlow<SelectedPeriod> = _selectedPeriod.asStateFlow()
+
+    fun setPeriod(monthIndex: Int, year: Int) {
+        _selectedPeriod.value = SelectedPeriod(monthIndex = monthIndex, year = year)
+    }
 
     fun getReceiptById(id: String): Receipt? {
         return _receipts.value.find { it.id == id }
@@ -72,6 +89,8 @@ val sampleReceipts = listOf(
         shopAddress = "Москва, Каширское ш., 31",
         category = "Продукты",
         dateText = "25 окт. 2026, 18:40",
+        monthIndex = 9,
+        year = 2026,
         items = listOf(
             ReceiptItem("1_1", "Молоко домик в деревне 3.2%", 2, 95),
             ReceiptItem("1_2", "Филе куриное охлажденное", 1, 420),
@@ -85,6 +104,8 @@ val sampleReceipts = listOf(
         shopAddress = "Москва, Варшавское ш., 141",
         category = "Транспорт",
         dateText = "24 окт. 2026, 09:15",
+        monthIndex = 9,
+        year = 2026,
         items = listOf(
             ReceiptItem("2_1", "АИ-95 (35 л)", 35, 60)
         )
@@ -95,6 +116,8 @@ val sampleReceipts = listOf(
         shopAddress = "Москва, м. Каширская",
         category = "Кафе",
         dateText = "24 окт. 2026, 13:20",
+        monthIndex = 9,
+        year = 2026,
         items = listOf(
             ReceiptItem("3_1", "Биг Спешиал Комбо", 1, 465),
             ReceiptItem("3_2", "Наггетсы 9 шт.", 1, 165),
@@ -107,9 +130,24 @@ val sampleReceipts = listOf(
         shopAddress = "ТРЦ Москворечье",
         category = "Развлечения",
         dateText = "22 окт. 2026, 20:00",
+        monthIndex = 9,
+        year = 2026,
         items = listOf(
             ReceiptItem("4_1", "Билет в кино VIP", 2, 650),
             ReceiptItem("4_2", "Попкорн карамельный большой", 1, 500)
+        )
+    ),
+    Receipt(
+        id = "5",
+        shopName = "Перекрёсток",
+        shopAddress = "Москва, пр-т Андропова, 22",
+        category = "Продукты",
+        dateText = "15 нояб. 2026, 19:10",
+        monthIndex = 10, // Ноябрь 2026
+        year = 2026,
+        items = listOf(
+            ReceiptItem("5_1", "Форель слабосолёная 200г", 1, 590),
+            ReceiptItem("5_2", "Авокадо Хасс", 2, 180)
         )
     )
 )

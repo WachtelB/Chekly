@@ -21,21 +21,30 @@ class HistoryViewModel(
 
     val uiState: StateFlow<HistoryUiState> = combine(
         ReceiptRepository.receipts,
+        ReceiptRepository.selectedPeriod,
         queryFlow,
         categoryFlow
-    ) { receipts, query, category ->
+    ) { receipts, period, query, category ->
         val cleanQuery = query.trim()
         val result = when {
             cleanQuery.equals("error", ignoreCase = true) -> {
                 HistoryListResult.Error("Ошибка фильтрации чеков. Проверьте запрос.")
             }
+            period.monthIndex == 8 && period.year == 2026 -> {
+                HistoryListResult.Loading
+            }
+            period.monthIndex == 7 && period.year == 2026 -> {
+                HistoryListResult.Error("Не удалось загрузить историю за август 2026.")
+            }
             else -> {
                 val filtered = receipts.filter { receipt ->
+                    val matchesPeriod =
+                        receipt.monthIndex == period.monthIndex && receipt.year == period.year
                     val matchesCategory = category == null || receipt.category == category
                     val matchesQuery = cleanQuery.isEmpty() ||
                             receipt.shopName.contains(cleanQuery, ignoreCase = true) ||
                             receipt.items.any { it.name.contains(cleanQuery, ignoreCase = true) }
-                    matchesCategory && matchesQuery
+                    matchesPeriod && matchesCategory && matchesQuery
                 }
                 if (filtered.isEmpty()) HistoryListResult.Empty
                 else HistoryListResult.Content(filtered)
@@ -44,6 +53,8 @@ class HistoryViewModel(
         HistoryUiState(
             query = query,
             selectedCategory = category,
+            selectedMonthIndex = period.monthIndex,
+            selectedYear = period.year,
             result = result
         )
     }.stateIn(

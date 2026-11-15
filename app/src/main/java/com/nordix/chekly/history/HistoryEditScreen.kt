@@ -4,24 +4,38 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,18 +48,36 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
+@Immutable
+@Serializable
+data class EditableReceiptItem(
+    val id: String,
+    val name: String,
+    val quantityText: String,
+    val priceText: String
+) {
+    val subtotalRub: Long
+        get() = (quantityText.toIntOrNull()?.coerceAtLeast(0) ?: 0) *
+                (priceText.toLongOrNull()?.coerceAtLeast(0L) ?: 0L)
+}
+
+@Immutable
 data class ReceiptEditUiState(
     val receiptFound: Boolean = true,
     val shopName: String = "",
     val shopAddress: String = "",
     val category: String = "",
     val dateText: String = "",
-    val firstItemName: String = "",
-    val firstItemPrice: String = "",
+    val items: List<EditableReceiptItem> = emptyList(),
     val hasUnsavedChanges: Boolean = false,
     val errorText: String? = null
-)
+) {
+    val totalAmountRub: Long
+        get() = items.sumOf { it.subtotalRub }
+}
 
 class ReceiptEditViewModel(
     private val savedStateHandle: SavedStateHandle
@@ -65,13 +97,22 @@ class ReceiptEditViewModel(
             return
         }
 
-        val firstItem = receipt.items.firstOrNull()
+        val savedItemsJson = savedStateHandle.get<String>("edit_items_json_$receiptId")
+        val initialItems = savedItemsJson?.let {
+            runCatching { Json.decodeFromString<List<EditableReceiptItem>>(it) }.getOrNull()
+        } ?: receipt.items.map {
+            EditableReceiptItem(
+                id = it.id,
+                name = it.name,
+                quantityText = it.quantity.toString(),
+                priceText = it.priceRub.toString()
+            )
+        }
+
         val savedShop = savedStateHandle["edit_shop_$receiptId"] ?: receipt.shopName
         val savedAddress = savedStateHandle["edit_addr_$receiptId"] ?: receipt.shopAddress
         val savedCategory = savedStateHandle["edit_cat_$receiptId"] ?: receipt.category
         val savedDate = savedStateHandle["edit_date_$receiptId"] ?: receipt.dateText
-        val savedItemName = savedStateHandle["edit_item_name_$receiptId"] ?: (firstItem?.name ?: "Товары по чеку")
-        val savedItemPrice = savedStateHandle["edit_item_price_$receiptId"] ?: (firstItem?.priceRub?.toString() ?: "0")
         val savedDirty = savedStateHandle["edit_dirty_$receiptId"] ?: false
 
         _uiState.value = ReceiptEditUiState(
@@ -80,10 +121,14 @@ class ReceiptEditViewModel(
             shopAddress = savedAddress,
             category = savedCategory,
             dateText = savedDate,
-            firstItemName = savedItemName,
-            firstItemPrice = savedItemPrice,
+            items = initialItems,
             hasUnsavedChanges = savedDirty
         )
+    }
+
+    private fun saveItemsToHandle(receiptId: String, items: List<EditableReceiptItem>) {
+        savedStateHandle["edit_items_json_$receiptId"] = Json.encodeToString(items)
+        savedStateHandle["edit_dirty_$receiptId"] = true
     }
 
     fun onShopNameChange(receiptId: String, value: String) {
@@ -104,36 +149,72 @@ class ReceiptEditViewModel(
         _uiState.update { it.copy(category = value, hasUnsavedChanges = true) }
     }
 
-    fun onFirstItemNameChange(receiptId: String, value: String) {
-        savedStateHandle["edit_item_name_$receiptId"] = value
-        savedStateHandle["edit_dirty_$receiptId"] = true
-        _uiState.update { it.copy(firstItemName = value, hasUnsavedChanges = true) }
+    fun onItemChange(
+        receiptId: String,
+        itemId: String,
+        name: String,
+        quantity: String,
+        price: String
+    ) {
+        _uiState.update { current ->
+            val updatedItems = current.items.map { item ->
+                if (item.id == itemId) {
+                    item.copy(name = name, quantityText = quantity, priceText = price)
+                } else item
+            }
+            saveItemsToHandle(receiptId, updatedItems)
+            current.copy(items = updatedItems, hasUnsavedChanges = true, errorText = null)
+        }
     }
 
-    fun onFirstItemPriceChange(receiptId: String, value: String) {
-        savedStateHandle["edit_item_price_$receiptId"] = value
-        savedStateHandle["edit_dirty_$receiptId"] = true
-        _uiState.update { it.copy(firstItemPrice = value, hasUnsavedChanges = true, errorText = null) }
+    fun onAddItem(receiptId: String) {
+        _uiState.update { current ->
+            val newItem = EditableReceiptItem(
+                id = "${receiptId}_${System.currentTimeMillis()}",
+                name = "",
+                quantityText = "1",
+                priceText = ""
+            )
+            val updatedItems = current.items + newItem
+            saveItemsToHandle(receiptId, updatedItems)
+            current.copy(items = updatedItems, hasUnsavedChanges = true)
+        }
+    }
+
+    fun onRemoveItem(receiptId: String, itemId: String) {
+        _uiState.update { current ->
+            if (current.items.size <= 1) return@update current
+            val updatedItems = current.items.filterNot { it.id == itemId }
+            saveItemsToHandle(receiptId, updatedItems)
+            current.copy(items = updatedItems, hasUnsavedChanges = true)
+        }
     }
 
     fun saveReceipt(receiptId: String, onSaved: () -> Unit) {
         val current = _uiState.value
-        val price = current.firstItemPrice.toLongOrNull()
-        if (current.shopName.isBlank() || price == null || price <= 0) {
-            _uiState.update {
-                it.copy(errorText = "Укажите название магазина и корректную цену (> 0 ₽)")
-            }
+        if (current.shopName.isBlank()) {
+            _uiState.update { it.copy(errorText = "Укажите название магазина") }
             return
         }
 
-        val existing = ReceiptRepository.getReceiptById(receiptId) ?: return
-        val updatedItems = if (existing.items.isNotEmpty()) {
-            existing.items.mapIndexed { index, item ->
-                if (index == 0) item.copy(name = current.firstItemName, priceRub = price)
-                else item
+        val validItems = current.items.mapNotNull { item ->
+            val qty = item.quantityText.toIntOrNull()
+            val price = item.priceText.toLongOrNull()
+            if (item.name.isNotBlank() && qty != null && qty > 0 && price != null && price > 0) {
+                ReceiptItem(
+                    id = item.id,
+                    name = item.name.trim(),
+                    quantity = qty,
+                    priceRub = price
+                )
+            } else null
+        }
+
+        if (validItems.size != current.items.size || validItems.isEmpty()) {
+            _uiState.update {
+                it.copy(errorText = "Проверьте все позиции: укажите название, количество > 0 и цену > 0 ₽")
             }
-        } else {
-            listOf(ReceiptItem("${receiptId}_1", current.firstItemName, 1, price))
+            return
         }
 
         ReceiptRepository.updateReceipt(
@@ -142,9 +223,10 @@ class ReceiptEditViewModel(
             shopAddress = current.shopAddress,
             category = current.category,
             dateText = current.dateText,
-            items = updatedItems
+            items = validItems
         )
         savedStateHandle["edit_dirty_$receiptId"] = false
+        savedStateHandle["edit_items_json_$receiptId"] = null
         onSaved()
     }
 }
@@ -227,21 +309,114 @@ fun ReceiptEditScreenContainer(
             singleLine = true
         )
 
-        OutlinedTextField(
-            value = state.firstItemName,
-            onValueChange = { viewModel.onFirstItemNameChange(receiptId, it) },
-            label = { Text("Основная позиция в чеке") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+        HorizontalDivider()
+
+        Text(
+            text = "Позиции в чеке (${state.items.size}):",
+            style = MaterialTheme.typography.titleMedium
         )
 
-        OutlinedTextField(
-            value = state.firstItemPrice,
-            onValueChange = { viewModel.onFirstItemPriceChange(receiptId, it) },
-            label = { Text("Цена за 1 ед. (₽)") },
+        state.items.forEachIndexed { index, item ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(CheklyDimens.SpacingMedium),
+                    verticalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Позиция #${index + 1}",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        if (state.items.size > 1) {
+                            IconButton(onClick = { viewModel.onRemoveItem(receiptId, item.id) }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Удалить позицию",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = item.name,
+                        onValueChange = {
+                            viewModel.onItemChange(receiptId, item.id, it, item.quantityText, item.priceText)
+                        },
+                        label = { Text("Название товара") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(CheklyDimens.SpacingSmall)
+                    ) {
+                        OutlinedTextField(
+                            value = item.quantityText,
+                            onValueChange = {
+                                viewModel.onItemChange(receiptId, item.id, item.name, it, item.priceText)
+                            },
+                            label = { Text("Кол-во (шт.)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = item.priceText,
+                            onValueChange = {
+                                viewModel.onItemChange(receiptId, item.id, item.name, item.quantityText, it)
+                            },
+                            label = { Text("Цена за 1 шт. (₽)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1.3f),
+                            singleLine = true
+                        )
+                    }
+
+                    Text(
+                        text = "Сумма: ${item.subtotalRub} ₽",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        OutlinedButton(
+            onClick = { viewModel.onAddItem(receiptId) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Text(
+                text = "Добавить позицию",
+                modifier = Modifier.padding(start = CheklyDimens.SpacingSmall)
+            )
+        }
+
+        HorizontalDivider()
+
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "ИТОГО:", style = MaterialTheme.typography.titleLarge)
+            Text(
+                text = "${state.totalAmountRub} ₽",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
 
         state.errorText?.let { error ->
             Text(text = error, color = MaterialTheme.colorScheme.error)
@@ -266,5 +441,7 @@ fun ReceiptEditScreenContainer(
                 Text("Сохранить")
             }
         }
+
+        Spacer(modifier = Modifier.height(CheklyDimens.SpacingLarge))
     }
 }

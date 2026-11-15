@@ -18,16 +18,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nordix.chekly.main.MainAction
 import com.nordix.chekly.main.components.CheklySearchField
+import com.nordix.chekly.main.components.ReceiptCard
+import com.nordix.chekly.main.components.TopHeaderBar
 import com.nordix.chekly.main.states.EmptyStateView
 import com.nordix.chekly.main.states.ErrorStateView
 import com.nordix.chekly.main.states.LoadingStateView
-import com.nordix.chekly.main.components.ReceiptCard
 import com.nordix.chekly.ui.theme.CheklyDimens
 
 @Composable
 fun HistoryListScreenContainer(
     onReceiptClick: (String) -> Unit,
+    onMainAction: (MainAction) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HistoryViewModel = viewModel()
 ) {
@@ -38,6 +41,10 @@ fun HistoryListScreenContainer(
         onCategorySelect = viewModel::onCategoryToggle,
         onResetFilters = viewModel::onResetFilters,
         onReceiptClick = onReceiptClick,
+        onPrevMonthClick = { onMainAction(MainAction.PrevMonthClick) },
+        onNextMonthClick = { onMainAction(MainAction.NextMonthClick) },
+        onPeriodClick = { onMainAction(MainAction.OpenMonthPicker) },
+        onProfileClick = { onMainAction(MainAction.ProfileClick) },
         modifier = modifier
     )
 }
@@ -49,17 +56,29 @@ fun HistoryListScreen(
     onCategorySelect: (String?) -> Unit,
     onResetFilters: () -> Unit,
     onReceiptClick: (String) -> Unit,
+    onPrevMonthClick: () -> Unit,
+    onNextMonthClick: () -> Unit,
+    onPeriodClick: () -> Unit,
+    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(top = CheklyDimens.ScreenPadding)
-    ) {
+    Column(modifier = modifier.fillMaxSize()) {
+        TopHeaderBar(
+            periodText = state.periodText,
+            onPrevClick = onPrevMonthClick,
+            onNextClick = onNextMonthClick,
+            onProfileClick = onProfileClick,
+            onPeriodClick = onPeriodClick
+        )
+
         Text(
             text = "История покупок",
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(horizontal = CheklyDimens.ScreenPadding)
+            modifier = Modifier.padding(
+                start = CheklyDimens.ScreenPadding,
+                end = CheklyDimens.ScreenPadding,
+                top = CheklyDimens.ScreenPadding
+            )
         )
 
         CheklySearchField(
@@ -101,8 +120,8 @@ fun HistoryListScreen(
                 onRetryClick = onResetFilters
             )
             HistoryListResult.Empty -> EmptyStateView(
-                monthName = "выбранным фильтрам",
-                year = 2026,
+                monthName = state.selectedMonth,
+                year = state.selectedYear,
                 onAddReceiptClick = onResetFilters
             )
             is HistoryListResult.Content -> {

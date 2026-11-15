@@ -215,7 +215,8 @@ fun MainScreenContainer(
                                     HistoryListScreenContainer(
                                         onReceiptClick = { id ->
                                             historyBackStack.selectHistoryReceipt(id)
-                                        }
+                                        },
+                                        onMainAction = viewModel::onAction
                                     )
                                 }
 
